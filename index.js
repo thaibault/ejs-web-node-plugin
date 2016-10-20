@@ -17,8 +17,7 @@
     See http://creativecommons.org/licenses/by/3.0/deed.de
     endregion
 */
-// region  imports
-import type {Configuration, Plugin} from 'webnode/source/type'
+// region imports
 import fileSystem from 'fs'
 import handlebars from 'handlebars'
 import path from 'path'
@@ -26,6 +25,7 @@ import path from 'path'
 try {
     require('source-map-support/register')
 } catch (error) {}
+import type {Configuration, Plugin} from 'web-node/type'
 import WebOptimizerHelper from 'weboptimizer/helper'
 // endregion
 /**
@@ -44,7 +44,7 @@ export default class Template {
     static async postConfigurationLoaded(
         configuration:Configuration,
         pluginsWithChangedConfiguration:Array<Plugin>
-    ):Configuration {
+    ):Promise<Array<string>> {
         const templateRenderingPromises:Array<Promise<string>> = []
         WebOptimizerHelper.walkDirectoryRecursivelySync(
             configuration.context.path, (filePath:string):?false => {
@@ -75,7 +75,7 @@ export default class Template {
                                         if (error)
                                             reject(error)
                                         else
-                                            resolve()
+                                            resolve(newFilePath)
                                     })
                             } catch (error) {
                                 reject(error)
