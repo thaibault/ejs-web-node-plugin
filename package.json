@@ -51,25 +51,5 @@
       ],
       "options": {}
     }
-  },
-  "webOptimizer": {
-    "injection": {
-      "external": {
-        "implicit": {
-          "pattern": {
-            "exclude": {
-              "__append__": {
-                "__evaluate__": "/^clientnode\\/test(?:\\.compiled)?(?:\\.js)?$/"
-              }
-            }
-          }
-        }
-      }
-    },
-    "module": {
-      "aliases": {
-        "clientnode/test$": "clientnode/test.compiled"
-      }
-    }
   }
 }
