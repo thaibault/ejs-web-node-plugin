@@ -19,7 +19,7 @@ import registerTest from 'clientnode/test'
 // endregion
 registerTest(function():void {
     require('./index')
-    this.test('initialize', (assert:Object):void => {
+    this.test('postConfigurationLoaded', (assert:Object):void => {
         // TODO
         assert.ok(true)
     })
