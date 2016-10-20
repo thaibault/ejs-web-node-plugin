@@ -1,0 +1,53 @@
+{
+  "name": "templatewebnodeplugin",
+  "version": "1.0.3",
+  "description": "A static template processor for webNode.",
+  "documentationWebsite": {
+    "name": "templateWebNodePlugin",
+    "trackingCode": "TODO"
+  },
+  "homepage": "http://torben.website/templateWebNodePlugin",
+  "license": "CC-BY-3.0",
+  "main": "index.compiled.js",
+  "keywords": [
+    "web",
+    "backend",
+    "static",
+    "template"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thaibault/templateWebNodePlugin.git"
+  },
+  "dependencies": {
+    "handlebars": "latest",
+    "weboptimizer": "latest",
+    "web-node": "latest"
+  },
+  "devDependencies": {
+    "documentation-website": "latest",
+    "qunit-cli": "latest",
+    "source-map-support": "latest"
+  },
+  "scripts": {
+    "build": "webOptimizer build",
+    "buildDLL": "webOptimizer buildDLL",
+    "clear": "webOptimizer clear && rm --force log.txt &>/dev/null",
+    "document": "webOptimizer document",
+    "lint": "webOptimizer typeCheck && webOptimizer lint",
+    "prepublish": "npm run build",
+    "serve": "webNode",
+    "start": "npm run serve",
+    "test": "webOptimizer test",
+    "update": "npm version patch && npm publish",
+    "updateDocumentation": "documentationWebsite --log-level info",
+    "watch": "webOptimizer build --watch",
+    "watchDLL": "webOptimizer buildDLL --watch"
+  },
+  "webNode": {
+    "template": {
+      "extensions": [".tpl"],
+      "options": {}
+    }
+  }
+}
