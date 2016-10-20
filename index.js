@@ -18,7 +18,7 @@
     endregion
 */
 // region  imports
-import type {Configuration, Plugin} from 'webnode/type'
+import type {Configuration, Plugin} from 'webnode/source/type'
 import fileSystem from 'fs'
 import handlebars from 'handlebars'
 import path from 'path'
@@ -28,7 +28,6 @@ try {
     require('source-map-support/register')
 } catch (error) {}
 // endregion
-// region plugins/classes
 /**
  * Renders all templates again configuration object and rerenders them an
  * configurations changes.
@@ -42,7 +41,7 @@ export default class Template {
      * changed plugin configuration.
      * @returns New configuration object to use.
      */
-    static postConfigurationLoaded(
+    static async postConfigurationLoaded(
         configuration:Configuration,
         pluginsWithChangedConfiguration:Array<Plugin>
     ):Configuration {
@@ -84,11 +83,9 @@ export default class Template {
                         }
                     })))
             })
-        await Promise.all(templateRenderingPromises)
-        return configuration
+        return await Promise.all(templateRenderingPromises)
     }
 }
-// endregion
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
 // vim: foldmethod=marker foldmarker=region,endregion:
