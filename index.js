@@ -22,11 +22,11 @@ import type {Configuration, Plugin} from 'webnode/source/type'
 import fileSystem from 'fs'
 import handlebars from 'handlebars'
 import path from 'path'
-import WebOptimizerHelper from 'weboptimizer/helper'
 // NOTE: Only needed for debugging this file.
 try {
     require('source-map-support/register')
 } catch (error) {}
+import WebOptimizerHelper from 'weboptimizer/helper'
 // endregion
 /**
  * Renders all templates again configuration object and rerenders them an
