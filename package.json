@@ -1,6 +1,6 @@
 {
   "name": "templatewebnodeplugin",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A static template processor for webNode.",
   "documentationWebsite": {
     "name": "templateWebNodePlugin",
@@ -46,7 +46,9 @@
   },
   "webNode": {
     "template": {
-      "extensions": [".tpl"],
+      "extensions": [
+        ".tpl"
+      ],
       "options": {}
     }
   }
