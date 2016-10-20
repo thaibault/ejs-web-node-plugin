@@ -1,6 +1,6 @@
 {
   "name": "templatewebnodeplugin",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A static template processor for webNode.",
   "documentationWebsite": {
     "name": "templateWebNodePlugin",
@@ -9,7 +9,9 @@
   "homepage": "http://torben.website/templateWebNodePlugin",
   "license": "CC-BY-3.0",
   "main": "index.compiled.js",
-  "files": ["index.js"],
+  "files": [
+    "index.js"
+  ],
   "keywords": [
     "web",
     "backend",
