@@ -20,15 +20,29 @@ import * as QUnit from 'qunit-cli'
 try {
     module.require('source-map-support/register')
 } catch (error) {}
-import configuration from 'web-node/configurator'
+import {webNode as configuration} from './package'
 
 import Index from './index'
 // endregion
-QUnit.module('index')
 QUnit.load()
-QUnit.test('postConfigurationLoaded', (assert:Object):void => {
-    assert.deepEqual(
-        Index.postConfigurationLoaded(configuration, []), configuration)
+QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
+    const done:Function = assert.async()
+    configuration.context = {path: './'}
+    configuration.plugin = {
+        directories: {
+            external: {
+                path: './dummyPluginFolder'
+            }
+        }
+    }
+    let result:any
+    try {
+        result = await Index.postConfigurationLoaded(configuration, [])
+    } catch (error) {
+        console.error(error)
+    }
+    assert.deepEqual(result, configuration)
+    done()
 })
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:

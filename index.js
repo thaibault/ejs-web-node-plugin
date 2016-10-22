@@ -43,16 +43,22 @@ export default class Template {
      */
     static async postConfigurationLoaded(
         configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>
+        pluginsWithChangedConfiguration:Array<Plugin>, plugins:Array<Plugin>
     ):Promise<Array<string>> {
         const templateRenderingPromises:Array<Promise<string>> = []
         WebOptimizerHelper.walkDirectoryRecursivelySync(
             configuration.context.path, (filePath:string):?false => {
-                // TODO return "false" if in plugin location and corresponding
-                // regexp doesn't match to stop deeper iterations.
-                if (filePath.endsWith('node_modules'))
+                if (filePath.startsWith('.'))
                     return false
-                //
+                for (const type:string in configuration.plugin.directories)
+                    if (configuration.plugin.directories.hasOwnProperty(
+                        type
+                    ) && path.dirname(filePath) === path.resolve(
+                        configuration.plugin.directories[type].path
+                    ) && !plugins.map((plugin:Plugin) => plugin.path).includes(
+                        filePath
+                    ))
+                        return false
                 const fileExtension:string = path.extname(filePath)
                 if (configuration.template.extensions.includes(fileExtension))
                     templateRenderingPromises.push(new Promise((
