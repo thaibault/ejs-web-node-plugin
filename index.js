@@ -18,7 +18,10 @@
     endregion
 */
 // region imports
-import Tools from clientnode
+import Tools from 'clientnode'
+/* eslint-disable no-duplicate-imports */
+import type {File} from 'clientnode'
+/* eslint-enable no-duplicate-imports */
 import fileSystem from 'fs'
 import handlebars from 'handlebars'
 import path from 'path'
@@ -60,7 +63,7 @@ export default class Template {
                     ))
                         return false
             }
-        ))
+        )) {
             const fileExtension:string = path.extname(file.path)
             if (configuration.template.extensions.includes(fileExtension))
                 templateRenderingPromises.push(new Promise((
@@ -90,7 +93,7 @@ export default class Template {
                         }
                     }
                 })))
-            })
+        }
         return await Promise.all(templateRenderingPromises)
     }
 }

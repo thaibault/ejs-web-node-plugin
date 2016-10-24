@@ -37,7 +37,7 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     }
     let result:any
     try {
-        result = await Index.postConfigurationLoaded(configuration, [])
+        result = await Index.postConfigurationLoaded(configuration, [], [])
     } catch (error) {
         console.error(error)
     }
