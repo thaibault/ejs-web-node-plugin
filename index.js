@@ -18,6 +18,7 @@
     endregion
 */
 // region imports
+import Tools from clientnode
 import fileSystem from 'fs'
 import handlebars from 'handlebars'
 import path from 'path'
@@ -26,7 +27,6 @@ try {
     require('source-map-support/register')
 } catch (error) {}
 import type {Configuration, Plugin} from 'web-node/type'
-import WebOptimizerHelper from 'weboptimizer/helper'
 // endregion
 /**
  * Renders all templates again configuration object and rerenders them an
@@ -46,48 +46,50 @@ export default class Template {
         pluginsWithChangedConfiguration:Array<Plugin>, plugins:Array<Plugin>
     ):Promise<Array<string>> {
         const templateRenderingPromises:Array<Promise<string>> = []
-        WebOptimizerHelper.walkDirectoryRecursivelySync(
-            configuration.context.path, (filePath:string):?false => {
-                if (filePath.startsWith('.'))
+        for (const file:File of await Tools.walkDirectoryRecursively(
+            configuration.context.path, (file:File):?false => {
+                if (file.path.startsWith('.'))
                     return false
                 for (const type:string in configuration.plugin.directories)
                     if (configuration.plugin.directories.hasOwnProperty(
                         type
-                    ) && path.dirname(filePath) === path.resolve(
+                    ) && path.dirname(file.path) === path.resolve(
                         configuration.plugin.directories[type].path
                     ) && !plugins.map((plugin:Plugin) => plugin.path).includes(
-                        filePath
+                        file.path
                     ))
                         return false
-                const fileExtension:string = path.extname(filePath)
-                if (configuration.template.extensions.includes(fileExtension))
-                    templateRenderingPromises.push(new Promise((
-                        resolve:Function, reject:Function
-                    ):void => fileSystem.readFile(filePath, {
-                        encoding: configuration.encoding
-                    }, (error:?Error, content:string):void => {
-                        if (error)
+            }
+        ))
+            const fileExtension:string = path.extname(file.path)
+            if (configuration.template.extensions.includes(fileExtension))
+                templateRenderingPromises.push(new Promise((
+                    resolve:Function, reject:Function
+                ):void => fileSystem.readFile(file.path, {
+                    encoding: configuration.encoding
+                }, (error:?Error, content:string):void => {
+                    if (error)
+                        reject(error)
+                    else {
+                        const newFilePath:string = file.path.substring(
+                            0, file.path.length - fileExtension.length)
+                        try {
+                            fileSystem.writeFile(
+                                newFilePath, handlebars.compile(
+                                    content, configuration.template.options
+                                )(configuration), {
+                                    encoding: configuration.encoding
+                                }, (error:?Error):void => {
+                                    if (error)
+                                        reject(error)
+                                    else
+                                        resolve(newFilePath)
+                                })
+                        } catch (error) {
                             reject(error)
-                        else {
-                            const newFilePath:string = filePath.substring(
-                                0, filePath.length - fileExtension.length)
-                            try {
-                                fileSystem.writeFile(
-                                    newFilePath, handlebars.compile(
-                                        content, configuration.template.options
-                                    )(configuration), {
-                                        encoding: configuration.encoding
-                                    }, (error:?Error):void => {
-                                        if (error)
-                                            reject(error)
-                                        else
-                                            resolve(newFilePath)
-                                    })
-                            } catch (error) {
-                                reject(error)
-                            }
                         }
-                    })))
+                    }
+                })))
             })
         return await Promise.all(templateRenderingPromises)
     }

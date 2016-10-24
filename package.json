@@ -23,7 +23,7 @@
     "url": "https://github.com/thaibault/templateWebNodePlugin.git"
   },
   "dependencies": {
-    "handlebars": "latest",
+    "ejs": "latest",
     "weboptimizer": "latest",
     "web-node": "latest"
   },
