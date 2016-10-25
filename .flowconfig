@@ -3,6 +3,7 @@
 .*/\.git
 .*/_.*\.js
 .*/.+\.compiled\(\.js\)?
+\(.*/\)?node_modules/weboptimizer/\(configurator\|index\)\.js
 
 # temporary excludes
 .*/documentation-website/.*
