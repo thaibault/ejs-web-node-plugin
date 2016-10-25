@@ -32,7 +32,7 @@ try {
 import type {Configuration, Plugin} from 'web-node/type'
 // endregion
 /**
- * Renders all templates again configuration object and rerenders them an
+ * Renders all templates again configuration object and rerenders them after
  * configurations changes.
  */
 export default class Template {
@@ -70,7 +70,8 @@ export default class Template {
                 templateRenderingPromises.push(new Promise((
                     resolve:Function, reject:Function
                 ):void => fileSystem.readFile(file.path, {
-                    encoding: configuration.encoding
+                    encoding: configuration.encoding,
+                    flag: 'r'
                 }, (error:?Error, content:string):void => {
                     if (error)
                         reject(error)

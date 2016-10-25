@@ -15,26 +15,22 @@
     endregion
 */
 // region imports
+import Tools from 'clientnode'
 import * as QUnit from 'qunit-cli'
 // NOTE: Only needed for debugging this file.
 try {
     module.require('source-map-support/register')
 } catch (error) {}
-import {webNode as configuration} from './package'
+import {configuration} from 'webNode'
 
 import Index from './index'
 // endregion
 QUnit.load()
 QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     const done:Function = assert.async()
-    configuration.context = {path: './'}
-    configuration.plugin = {
-        directories: {
-            external: {
-                path: './dummyPluginFolder'
-            }
-        }
-    }
+    configuration.plugin = {directories: {external: {
+        path: './dummyPluginFolder'
+    }}}
     let result:any
     try {
         result = await Index.postConfigurationLoaded(configuration, [], [])
