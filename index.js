@@ -20,10 +20,10 @@
 // region imports
 import Tools from 'clientnode'
 /* eslint-disable no-duplicate-imports */
-import type {File} from 'clientnode'
+import type {File, PlainObject} from 'clientnode'
 /* eslint-enable no-duplicate-imports */
 import fileSystem from 'fs'
-import handlebars from 'handlebars'
+import ejs from 'ejs'
 import path from 'path'
 // NOTE: Only needed for debugging this file.
 try {
@@ -42,6 +42,7 @@ export default class Template {
      * @param configuration - Updated configuration object.
      * @param pluginsWithChangedConfiguration - List of plugins which have a
      * changed plugin configuration.
+     * @param plugins - List of all loaded plugins.
      * @returns New configuration object to use.
      */
     static async postConfigurationLoaded(
@@ -76,11 +77,16 @@ export default class Template {
                     else {
                         const newFilePath:string = file.path.substring(
                             0, file.path.length - fileExtension.length)
+                        const options:PlainObject =
+                            Tools.copyLimitedRecursively(
+                                configuration.template.options)
+                        options.filename = path.resolve(
+                            path.dirname(file.path), file.path)
                         try {
                             fileSystem.writeFile(
-                                newFilePath, handlebars.compile(
-                                    content, configuration.template.options
-                                )(configuration), {
+                                newFilePath, ejs.render(
+                                    content, configuration, options
+                                ), {
                                     encoding: configuration.encoding
                                 }, (error:?Error):void => {
                                     if (error)
