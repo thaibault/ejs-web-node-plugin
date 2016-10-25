@@ -58,9 +58,9 @@ export default class Template {
                         type
                     ) && path.dirname(file.path) === path.resolve(
                         configuration.plugin.directories[type].path
-                    ) && !plugins.map((plugin:Plugin) => plugin.path).includes(
-                        file.path
-                    ))
+                    ) && !plugins.map((
+                        plugin:Plugin
+                    ):string => plugin.path).includes(file.path))
                         return false
             }
         )) {
