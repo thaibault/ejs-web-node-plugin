@@ -15,20 +15,32 @@
     endregion
 */
 // region imports
+import Tools from 'clientnode'
 import * as QUnit from 'qunit-cli'
 // NOTE: Only needed for debugging this file.
 try {
     module.require('source-map-support/register')
 } catch (error) {}
-import configuration from 'web-node/configurator'
+import baseConfiguration from 'web-node/configurator.compiled'
+import type {Configuration} from 'web-node/type'
 
 import Index from './index'
 // endregion
-QUnit.module('index')
 QUnit.load()
-QUnit.test('postConfigurationLoaded', (assert:Object):void => {
-    assert.deepEqual(
-        Index.postConfigurationLoaded(configuration, []), configuration)
+QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
+    const done:Function = assert.async()
+    const configuration:Configuration = Tools.extendObject(
+        true, {}, baseConfiguration, {plugin: {directories: {external: {
+            path: './dummyPlugin'
+        }}}})
+    let result:any
+    try {
+        result = await Index.postConfigurationLoaded(configuration, [], [])
+    } catch (error) {
+        console.error(error)
+    }
+    assert.deepEqual(result, configuration)
+    done()
 })
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:

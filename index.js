@@ -18,18 +18,23 @@
     endregion
 */
 // region imports
+import Tools from 'clientnode'
+/* eslint-disable no-duplicate-imports */
+import type {File, PlainObject} from 'clientnode'
+/* eslint-enable no-duplicate-imports */
 import fileSystem from 'fs'
-import handlebars from 'handlebars'
+import ejs from 'ejs'
 import path from 'path'
 // NOTE: Only needed for debugging this file.
 try {
     require('source-map-support/register')
 } catch (error) {}
 import type {Configuration, Plugin} from 'web-node/type'
-import WebOptimizerHelper from 'weboptimizer/helper'
+
+import PluginAPI from 'web-node/pluginAPI.compiled'
 // endregion
 /**
- * Renders all templates again configuration object and rerenders them an
+ * Renders all templates again configuration object and rerenders them after
  * configurations changes.
  */
 export default class Template {
@@ -39,51 +44,81 @@ export default class Template {
      * @param configuration - Updated configuration object.
      * @param pluginsWithChangedConfiguration - List of plugins which have a
      * changed plugin configuration.
+     * @param plugins - List of all loaded plugins.
      * @returns New configuration object to use.
      */
     static async postConfigurationLoaded(
         configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>
-    ):Promise<Array<string>> {
+        pluginsWithChangedConfiguration:Array<Plugin>, plugins:Array<Plugin>
+    ):Promise<Configuration> {
+        const scope:Object = {}
+        for (const type:string of ['evaluation', 'execution'])
+            for (const name:string in configuration.template.scope[type])
+                if (configuration.template.scope[type].hasOwnProperty(name))
+                    scope[name] = (new Function(
+                        'configuration', 'currentPath', 'fileSystem', 'path',
+                        'pluginAPI', 'require', 'template', 'tools',
+                        'webNodePath', type === 'evaluation' ?
+                        `return ${configuration.template.scope[type][name]}` :
+                        configuration.template.scope[type][name]
+                    ))(
+                        configuration, process.cwd(), fileSystem, path,
+                        /* eslint-disable no-eval */
+                        PluginAPI, eval('require'), Template, Tools, __dirname)
+                        /* eslint-enable no-eval */
         const templateRenderingPromises:Array<Promise<string>> = []
-        WebOptimizerHelper.walkDirectoryRecursivelySync(
-            configuration.context.path, (filePath:string):?false => {
-                // TODO return "false" if in plugin location and corresponding
-                // regexp doesn't match to stop deeper iterations.
-                if (filePath.endsWith('node_modules'))
+        for (const file:File of await Tools.walkDirectoryRecursively(
+            configuration.context.path, (file:File):?false => {
+                if (file.path.startsWith('.'))
                     return false
-                //
-                const fileExtension:string = path.extname(filePath)
-                if (configuration.template.extensions.includes(fileExtension))
-                    templateRenderingPromises.push(new Promise((
-                        resolve:Function, reject:Function
-                    ):void => fileSystem.readFile(filePath, {
-                        encoding: configuration.encoding
-                    }, (error:?Error, content:string):void => {
-                        if (error)
+                for (const type:string in configuration.plugin.directories)
+                    if (configuration.plugin.directories.hasOwnProperty(
+                        type
+                    ) && path.dirname(file.path) === path.resolve(
+                        configuration.plugin.directories[type].path
+                    ) && !plugins.map((
+                        plugin:Plugin
+                    ):string => plugin.path).includes(file.path))
+                        return false
+            }
+        )) {
+            const fileExtension:string = path.extname(file.path)
+            if (configuration.template.extensions.includes(fileExtension))
+                templateRenderingPromises.push(new Promise((
+                    resolve:Function, reject:Function
+                ):void => fileSystem.readFile(file.path, {
+                    encoding: configuration.encoding,
+                    flag: 'r'
+                }, (error:?Error, content:string):void => {
+                    if (error)
+                        reject(error)
+                    else {
+                        const newFilePath:string = file.path.substring(
+                            0, file.path.length - fileExtension.length)
+                        const options:PlainObject =
+                            Tools.copyLimitedRecursively(
+                                configuration.template.options)
+                        options.filename = path.resolve(
+                            path.dirname(file.path), file.path)
+                        try {
+                            fileSystem.writeFile(newFilePath, ejs.render(
+                                content, scope, options
+                            ), {encoding: configuration.encoding}, (
+                                error:?Error
+                            ):void => {
+                                if (error)
+                                    reject(error)
+                                else
+                                    resolve(newFilePath)
+                            })
+                        } catch (error) {
                             reject(error)
-                        else {
-                            const newFilePath:string = filePath.substring(
-                                0, filePath.length - fileExtension.length)
-                            try {
-                                fileSystem.writeFile(
-                                    newFilePath, handlebars.compile(
-                                        content, configuration.template.options
-                                    )(configuration), {
-                                        encoding: configuration.encoding
-                                    }, (error:?Error):void => {
-                                        if (error)
-                                            reject(error)
-                                        else
-                                            resolve(newFilePath)
-                                    })
-                            } catch (error) {
-                                reject(error)
-                            }
                         }
-                    })))
-            })
-        return await Promise.all(templateRenderingPromises)
+                    }
+                })))
+        }
+        await Promise.all(templateRenderingPromises)
+        return configuration
     }
 }
 // region vim modline

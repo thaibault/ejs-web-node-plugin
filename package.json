@@ -23,7 +23,8 @@
     "url": "https://github.com/thaibault/templateWebNodePlugin.git"
   },
   "dependencies": {
-    "handlebars": "latest",
+    "clientnode": "latest",
+    "ejs": "latest",
     "weboptimizer": "latest",
     "web-node": "latest"
   },
@@ -52,7 +53,18 @@
       "extensions": [
         ".tpl"
       ],
-      "options": {}
+      "options": {
+        "cache": true,
+        "debug": {"__evaluate__": "self.debug"},
+        "compileDebug": {"__evaluate__": "self.debug"}
+      },
+      "scope": {
+        "evaluation": {
+            "configuration": "configuration",
+            "tools": "require('clientnode').default"
+        },
+        "execution": {}
+      }
     }
   }
 }
