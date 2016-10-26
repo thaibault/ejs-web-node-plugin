@@ -52,19 +52,20 @@ export default class Template {
         pluginsWithChangedConfiguration:Array<Plugin>, plugins:Array<Plugin>
     ):Promise<Configuration> {
         const scope:Object = {}
-        console.log('A', configuration.template.scope[type])
         for (const type:string of ['evaluation', 'execution'])
-            for (const name:string of configuration.template.scope[type])
-                scope[name] = (new Function(
-                    'configuration', 'currentPath', 'fileSystem', 'path',
-                    'pluginAPI', 'template', 'tools', 'webNodePath', (
-                        type === 'evaluation'
-                    ) ? `return ${configuration.template.scope[type][name]}` :
-                    configuration.template.scope[type][name]
-                ))(
-                    configuration, process.cwd(), fileSystem, path, PluginAPI,
-                    Template, Tools, __dirname)
-        console.log('B', scope)
+            for (const name:string in configuration.template.scope[type])
+                if (configuration.template.scope[type].hasOwnProperty(name))
+                    scope[name] = (new Function(
+                        'configuration', 'currentPath', 'fileSystem', 'path',
+                        'pluginAPI', 'require', 'template', 'tools',
+                        'webNodePath', type === 'evaluation' ?
+                        `return ${configuration.template.scope[type][name]}` :
+                        configuration.template.scope[type][name]
+                    ))(
+                        configuration, process.cwd(), fileSystem, path,
+                        /* eslint-disable no-eval */
+                        PluginAPI, eval('require'), Template, Tools, __dirname)
+                        /* eslint-enable no-eval */
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const file:File of await Tools.walkDirectoryRecursively(
             configuration.context.path, (file:File):?false => {

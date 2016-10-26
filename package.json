@@ -61,7 +61,7 @@
       "scope": {
         "evaluation": {
             "configuration": "configuration",
-            "tools": "require('clientnode')"
+            "tools": "require('clientnode').default"
         },
         "execution": {}
       }
