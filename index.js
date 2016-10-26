@@ -30,6 +30,8 @@ try {
     require('source-map-support/register')
 } catch (error) {}
 import type {Configuration, Plugin} from 'web-node/type'
+
+import PluginAPI from 'web-node/pluginAPI.compiled'
 // endregion
 /**
  * Renders all templates again configuration object and rerenders them after
@@ -48,7 +50,21 @@ export default class Template {
     static async postConfigurationLoaded(
         configuration:Configuration,
         pluginsWithChangedConfiguration:Array<Plugin>, plugins:Array<Plugin>
-    ):Promise<Array<string>> {
+    ):Promise<Configuration> {
+        const scope:Object = {}
+        console.log('A', configuration.template.scope[type])
+        for (const type:string of ['evaluation', 'execution'])
+            for (const name:string of configuration.template.scope[type])
+                scope[name] = (new Function(
+                    'configuration', 'currentPath', 'fileSystem', 'path',
+                    'pluginAPI', 'template', 'tools', 'webNodePath', (
+                        type === 'evaluation'
+                    ) ? `return ${configuration.template.scope[type][name]}` :
+                    configuration.template.scope[type][name]
+                ))(
+                    configuration, process.cwd(), fileSystem, path, PluginAPI,
+                    Template, Tools, __dirname)
+        console.log('B', scope)
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const file:File of await Tools.walkDirectoryRecursively(
             configuration.context.path, (file:File):?false => {
@@ -84,17 +100,16 @@ export default class Template {
                         options.filename = path.resolve(
                             path.dirname(file.path), file.path)
                         try {
-                            fileSystem.writeFile(
-                                newFilePath, ejs.render(
-                                    content, configuration, options
-                                ), {
-                                    encoding: configuration.encoding
-                                }, (error:?Error):void => {
-                                    if (error)
-                                        reject(error)
-                                    else
-                                        resolve(newFilePath)
-                                })
+                            fileSystem.writeFile(newFilePath, ejs.render(
+                                content, scope, options
+                            ), {encoding: configuration.encoding}, (
+                                error:?Error
+                            ):void => {
+                                if (error)
+                                    reject(error)
+                                else
+                                    resolve(newFilePath)
+                            })
                         } catch (error) {
                             reject(error)
                         }

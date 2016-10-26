@@ -1,5 +1,6 @@
-<%= name %>
+<%= configuration.name %>
 ===========
 
-<% for (const key:string in globals) %>
-    <%= key %>
+<% for (var key in configuration) { %>
+    - "<%= key %>" -> <%- typeof configuration[key] === 'string' ? configuration[key] : tools.representObject(configuration[key]) %>
+<% } %>

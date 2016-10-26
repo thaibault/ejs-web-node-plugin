@@ -57,6 +57,13 @@
         "cache": true,
         "debug": {"__evaluate__": "self.debug"},
         "compileDebug": {"__evaluate__": "self.debug"}
+      },
+      "scope": {
+        "evaluation": {
+            "configuration": "configuration",
+            "tools": "require('clientnode')"
+        },
+        "execution": {}
       }
     }
   }
