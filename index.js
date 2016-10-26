@@ -19,9 +19,7 @@
 */
 // region imports
 import Tools from 'clientnode'
-/* eslint-disable no-duplicate-imports */
 import type {File, PlainObject} from 'clientnode'
-/* eslint-enable no-duplicate-imports */
 import fileSystem from 'fs'
 import ejs from 'ejs'
 import path from 'path'
