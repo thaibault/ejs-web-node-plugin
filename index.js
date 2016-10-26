@@ -101,7 +101,8 @@ export default class Template {
                     }
                 })))
         }
-        return await Promise.all(templateRenderingPromises)
+        await Promise.all(templateRenderingPromises)
+        return configuration
     }
 }
 // region vim modline

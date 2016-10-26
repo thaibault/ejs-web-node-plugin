@@ -21,16 +21,18 @@ import * as QUnit from 'qunit-cli'
 try {
     module.require('source-map-support/register')
 } catch (error) {}
-import {configuration} from 'webNode'
+import baseConfiguration from 'web-node/configurator.compiled'
+import type {Configuration} from 'web-node/type'
 
 import Index from './index'
 // endregion
 QUnit.load()
 QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     const done:Function = assert.async()
-    configuration.plugin = {directories: {external: {
-        path: './dummyPluginFolder'
-    }}}
+    const configuration:Configuration = Tools.extendObject(
+        true, {}, baseConfiguration, {plugin: {directories: {external: {
+            path: './dummyPlugin'
+        }}}})
     let result:any
     try {
         result = await Index.postConfigurationLoaded(configuration, [], [])
