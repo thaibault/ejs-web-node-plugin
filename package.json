@@ -1,6 +1,6 @@
 {
   "name": "templatewebnodeplugin",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A static template processor for webNode.",
   "documentationWebsite": {
     "name": "templateWebNodePlugin",
@@ -55,13 +55,17 @@
       ],
       "options": {
         "cache": true,
-        "debug": {"__evaluate__": "self.debug"},
-        "compileDebug": {"__evaluate__": "self.debug"}
+        "debug": {
+          "__evaluate__": "self.debug"
+        },
+        "compileDebug": {
+          "__evaluate__": "self.debug"
+        }
       },
       "scope": {
         "evaluation": {
-            "configuration": "configuration",
-            "tools": "require('clientnode').default"
+          "configuration": "configuration",
+          "tools": "require('clientnode').default"
         },
         "execution": {}
       }
