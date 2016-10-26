@@ -16,6 +16,7 @@
 */
 // region imports
 import Tools from 'clientnode'
+import fileSystem from 'fs'
 import * as QUnit from 'qunit-cli'
 // NOTE: Only needed for debugging this file.
 try {
@@ -29,6 +30,9 @@ import Index from './index'
 QUnit.load()
 QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     const done:Function = assert.async()
+    const targetFilePath:string = './dummyPlugin/dummy.txt'
+    if (await Tools.isFile(targetFilePath))
+        fileSystem.unlinkSync(targetFilePath)
     const configuration:Configuration = Tools.extendObject(
         true, {}, baseConfiguration, {plugin: {directories: {external: {
             path: './dummyPlugin'
@@ -40,6 +44,8 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
         console.error(error)
     }
     assert.deepEqual(result, configuration)
+    assert.ok(await Tools.isFile(targetFilePath))
+    fileSystem.unlinkSync(targetFilePath)
     done()
 })
 // region vim modline
