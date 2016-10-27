@@ -36,18 +36,21 @@ import PluginAPI from 'web-node/pluginAPI.compiled'
  * configurations changes.
  */
 export default class Template {
+    // TODO remove all rendered files on exit.
     /**
      * Triggered hook when at least one plugin has a new configuration file and
      * configuration object has been changed.
      * @param configuration - Updated configuration object.
      * @param pluginsWithChangedConfiguration - List of plugins which have a
      * changed plugin configuration.
+     * @param oldConfiguration - Old configuration object.
      * @param plugins - List of all loaded plugins.
      * @returns New configuration object to use.
      */
     static async postConfigurationLoaded(
         configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>, plugins:Array<Plugin>
+        pluginsWithChangedConfiguration:Array<Plugin>,
+        oldConfiguration:Configuration, plugins:Array<Plugin>
     ):Promise<Configuration> {
         const scope:Object = {}
         for (const type:string of ['evaluation', 'execution'])
