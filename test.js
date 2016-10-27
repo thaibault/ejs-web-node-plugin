@@ -28,6 +28,11 @@ import type {Configuration} from 'web-node/type'
 import Index from './index'
 // endregion
 QUnit.load()
+// region tests
+/* TODO
+QUnit.test('exit', (assert:Object):Promise<void> => {
+})
+*/
 QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     const done:Function = assert.async()
     const targetFilePath:string = './dummyPlugin/dummy.txt'
@@ -39,7 +44,7 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
         }}}})
     let result:any
     try {
-        result = await Index.postConfigurationLoaded(configuration, [], [])
+        result = await Index.postConfigurationLoaded(configuration, [], {}, [])
     } catch (error) {
         console.error(error)
     }
@@ -48,6 +53,7 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     fileSystem.unlinkSync(targetFilePath)
     done()
 })
+// endregion
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
 // vim: foldmethod=marker foldmarker=region,endregion:
