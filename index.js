@@ -27,7 +27,7 @@ import path from 'path'
 try {
     require('source-map-support/register')
 } catch (error) {}
-import type {Configuration, Plugin} from 'web-node/type'
+import type {Configuration, Plugin, Services} from 'web-node/type'
 
 import PluginAPI from 'web-node/pluginAPI.compiled'
 // endregion
@@ -36,7 +36,40 @@ import PluginAPI from 'web-node/pluginAPI.compiled'
  * configurations changes.
  */
 export default class Template {
-    // TODO remove all rendered files on exit.
+    // region api
+    /**
+     * Application will be closed soon.
+     * @param services - An object with stored service instances.
+     * @param configuration - Updated configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @returns Given object of services.
+     */
+    static async exit(
+        services:Services, configuration:Configuration, plugins:Array<Plugin>
+    ):Promise<Services> {
+        const templateOutputRemoveingPromises:Array<Promise<string>> = []
+        for (const file:File of await Template.getFiles(
+            configuration, plugins
+        ))
+            templateOutputRemoveingPromises.push(new Promise(async (
+                resolve:Function, reject:Function
+            ):Promise<void> => {
+                const newFilePath:string = file.path.substring(
+                    0, file.path.length - path.extname(file.path).length)
+                let newFileExists:?boolean
+                try {
+                    newFileExists = await Tools.isFile(newFilePath)
+                } catch (error) {
+                    reject(error)
+                }
+                if (newFileExists)
+                    fileSystem.unlink(newFilePath, (error:?Error):void => (
+                        error
+                    ) ? reject(error) : resolve(newFilePath))
+            }))
+        await Promise.all(templateOutputRemoveingPromises)
+        return services
+    }
     /**
      * Triggered hook when at least one plugin has a new configuration file and
      * configuration object has been changed.
@@ -68,9 +101,53 @@ export default class Template {
                         PluginAPI, eval('require'), Template, Tools, __dirname)
                         /* eslint-enable no-eval */
         const templateRenderingPromises:Array<Promise<string>> = []
-        for (const file:File of await Tools.walkDirectoryRecursively(
+        for (const file:File of await Template.getFiles(
+            configuration, plugins
+        ))
+            templateRenderingPromises.push(new Promise((
+                resolve:Function, reject:Function
+            ):void => fileSystem.readFile(file.path, {
+                encoding: configuration.encoding,
+                flag: 'r'
+            }, (error:?Error, content:string):void => {
+                if (error)
+                    reject(error)
+                else {
+                    const newFilePath:string = file.path.substring(
+                        0, file.path.length - path.extname(file.path).length)
+                    const options:PlainObject = Tools.copyLimitedRecursively(
+                        configuration.template.options)
+                    options.filename = path.resolve(
+                        path.dirname(file.path), file.path)
+                    try {
+                        fileSystem.writeFile(newFilePath, ejs.render(
+                            content, scope, options
+                        ), {encoding: configuration.encoding}, (
+                            error:?Error
+                        ):void => (error) ? reject(error) : resolve(
+                            newFilePath))
+                    } catch (error) {
+                        reject(error)
+                    }
+                }
+            })))
+        await Promise.all(templateRenderingPromises)
+        return configuration
+    }
+    // endregion
+    // region helper
+    /**
+     * Retrieves all files to process.
+     * @param configuration - Updated configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @returns A promise holding all resolved files.
+     */
+    static async getFiles(
+        configuration:Configuration, plugins:Array<Plugin>
+    ):Promise<Array<File>> {
+        return (await Tools.walkDirectoryRecursively(
             configuration.context.path, (file:File):?false => {
-                if (file.path.startsWith('.'))
+                if (path.basename(file.path).startsWith('.'))
                     return false
                 for (const type:string in configuration.plugin.directories)
                     if (configuration.plugin.directories.hasOwnProperty(
@@ -82,45 +159,11 @@ export default class Template {
                     ):string => plugin.path).includes(file.path))
                         return false
             }
-        )) {
-            const fileExtension:string = path.extname(file.path)
-            if (configuration.template.extensions.includes(fileExtension))
-                templateRenderingPromises.push(new Promise((
-                    resolve:Function, reject:Function
-                ):void => fileSystem.readFile(file.path, {
-                    encoding: configuration.encoding,
-                    flag: 'r'
-                }, (error:?Error, content:string):void => {
-                    if (error)
-                        reject(error)
-                    else {
-                        const newFilePath:string = file.path.substring(
-                            0, file.path.length - fileExtension.length)
-                        const options:PlainObject =
-                            Tools.copyLimitedRecursively(
-                                configuration.template.options)
-                        options.filename = path.resolve(
-                            path.dirname(file.path), file.path)
-                        try {
-                            fileSystem.writeFile(newFilePath, ejs.render(
-                                content, scope, options
-                            ), {encoding: configuration.encoding}, (
-                                error:?Error
-                            ):void => {
-                                if (error)
-                                    reject(error)
-                                else
-                                    resolve(newFilePath)
-                            })
-                        } catch (error) {
-                            reject(error)
-                        }
-                    }
-                })))
-        }
-        await Promise.all(templateRenderingPromises)
-        return configuration
+        )).filter((file:File):boolean =>
+            configuration.template.extensions.includes(path.extname(file.path))
+        )
     }
+    // endregion
 }
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
