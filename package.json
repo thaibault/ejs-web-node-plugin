@@ -1,6 +1,6 @@
 {
   "name": "templatewebnodeplugin",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A static template processor for webNode.",
   "documentationWebsite": {
     "name": "templateWebNodePlugin",
