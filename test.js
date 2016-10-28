@@ -44,8 +44,8 @@ QUnit.test('exit', async (assert:Object):Promise<void> => {
         await Index.exit({}, configuration, [])
     } catch (error) {
         console.error(error)
-        assert.notOk(await Tools.isFile(targetFilePath))
     }
+    assert.notOk(await Tools.isFile(targetFilePath))
     done()
 })
 QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
