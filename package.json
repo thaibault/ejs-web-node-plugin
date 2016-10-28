@@ -70,5 +70,13 @@
         "execution": {}
       }
     }
+  },
+  "webOptimizer": {
+    "module": {
+      "aliases": {
+        "web-node/configurator$": "web-node/configurator.compiled",
+        "web-node/pluginAPI$": "web-node/pluginAPI.compiled"
+      }
+    }
   }
 }

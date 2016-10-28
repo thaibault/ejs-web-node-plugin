@@ -23,7 +23,7 @@ import * as QUnit from 'qunit-cli'
 try {
     module.require('source-map-support/register')
 } catch (error) {}
-import baseConfiguration from 'web-node/configurator.compiled'
+import baseConfiguration from 'web-node/configurator'
 import type {Configuration} from 'web-node/type'
 
 import Index from './index'
