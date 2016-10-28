@@ -29,7 +29,7 @@ try {
 } catch (error) {}
 import type {Configuration, Plugin, Services} from 'web-node/type'
 
-import PluginAPI from 'web-node/pluginAPI.compiled'
+import PluginAPI from 'web-node/pluginAPI'
 // endregion
 /**
  * Renders all templates again configuration object and rerenders them after
