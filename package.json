@@ -65,6 +65,8 @@
       "scope": {
         "evaluation": {
           "configuration": "configuration",
+          "fileSystem": "require('fs')",
+          "path": "require('path')",
           "tools": "require('clientnode').default"
         },
         "execution": {}
