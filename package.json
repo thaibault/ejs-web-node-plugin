@@ -69,7 +69,8 @@
           "path": "require('path')",
           "tools": "require('clientnode').default"
         },
-        "execution": {}
+        "execution": {},
+        "plain": {}
       }
     }
   },

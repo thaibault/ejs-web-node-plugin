@@ -85,21 +85,21 @@ export default class Template {
         pluginsWithChangedConfiguration:Array<Plugin>,
         oldConfiguration:Configuration, plugins:Array<Plugin>
     ):Promise<Configuration> {
-        const scope:Object = {}
+        const scope:Object = Tools.copyLimitedRecursively(
+            configuration.template.scope.plain)
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
                     scope[name] = (new Function(
                         'configuration', 'currentPath', 'fileSystem', 'path',
-                        'pluginAPI', 'require', 'template', 'tools',
+                        'pluginAPI', 'require', 'scope', 'template', 'tools',
                         'webNodePath', type === 'evaluation' ?
                         `return ${configuration.template.scope[type][name]}` :
                         configuration.template.scope[type][name]
                     ))(
                         configuration, process.cwd(), fileSystem, path,
-                        /* eslint-disable no-eval */
-                        PluginAPI, eval('require'), Template, Tools, __dirname)
-                        /* eslint-enable no-eval */
+                        PluginAPI, eval('require'), scope, Template, Tools,
+                        __dirname)
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const file:File of await Template.getFiles(
             configuration, plugins
