@@ -92,14 +92,15 @@ export default class Template {
                 if (configuration.template.scope[type].hasOwnProperty(name))
                     scope[name] = (new Function(
                         'configuration', 'currentPath', 'fileSystem', 'parser',
-                        'path', 'pluginAPI', 'require', 'scope', 'template',
-                        'tools', 'webNodePath', type === 'evaluation' ?
+                        'path', 'pluginAPI', 'plugins', 'require', 'scope',
+                        'template', 'tools', 'webNodePath',
+                        type === 'evaluation' ?
                         `return ${configuration.template.scope[type][name]}` :
                         configuration.template.scope[type][name]
                     ))(
                         configuration, process.cwd(), fileSystem, ejs, path,
-                        PluginAPI, eval('require'), scope, Template, Tools,
-                        __dirname)
+                        PluginAPI, plugins, eval('require'), scope, Template,
+                        Tools, __dirname)
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const file:File of await Template.getFiles(
             configuration, plugins
@@ -121,6 +122,8 @@ export default class Template {
                         path.dirname(file.path), file.path)
                     if (!('options' in scope))
                         scope.options = options
+                    if (!('plugins' in scope))
+                        scope.plugins = plugins
                     try {
                         fileSystem.writeFile(newFilePath, ejs.render(
                             content, scope, options
