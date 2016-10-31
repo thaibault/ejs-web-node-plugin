@@ -119,6 +119,8 @@ export default class Template {
                         configuration.template.options)
                     options.filename = path.resolve(
                         path.dirname(file.path), file.path)
+                    if ('options' in scope)
+                        scope.options = options
                     try {
                         fileSystem.writeFile(newFilePath, ejs.render(
                             content, scope, options

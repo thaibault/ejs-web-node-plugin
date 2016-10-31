@@ -66,6 +66,7 @@
         "evaluation": {
           "configuration": "configuration",
           "fileSystem": "require('fs')",
+          "parser": "require('ejs')",
           "path": "require('path')",
           "tools": "require('clientnode').default"
         },
