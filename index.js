@@ -124,15 +124,37 @@ export default class Template {
                         scope.options = options
                     if (!('plugins' in scope))
                         scope.plugins = plugins
+                    let template:?Function = null
                     try {
-                        fileSystem.writeFile(newFilePath, ejs.render(
-                            content, scope, options
-                        ), {encoding: configuration.encoding}, (
-                            error:?Error
-                        ):void => (error) ? reject(error) : resolve(
-                            newFilePath))
+                        template = ejs.compile(content, options)
                     } catch (error) {
+                        console.error(
+                            `Error during compiling template "` +
+                            `${options.filename}": ` + Tools.representObject(
+                                error))
                         reject(error)
+                    }
+                    if (template) {
+                        let result:?string = null
+                        try {
+                            result = template(scope)
+                        } catch (error) {
+                            console.error(
+                                `Error during running template "` +
+                                `${options.filename}": ` +
+                                Tools.representObject(error))
+                            reject(error)
+                        }
+                        if (result)
+                            try {
+                                fileSystem.writeFile(newFilePath, result, {
+                                    encoding: configuration.encoding
+                                }, (error:?Error):void => (error) ? reject(
+                                    error
+                                ) : resolve(newFilePath))
+                            } catch (error) {
+                                reject(error)
+                            }
                     }
                 }
             })))
