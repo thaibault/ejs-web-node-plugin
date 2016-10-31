@@ -65,10 +65,12 @@
       "scope": {
         "evaluation": {
           "configuration": "configuration",
-          "fileSystem": "require('fs')",
-          "parser": "require('ejs')",
-          "path": "require('path')",
-          "tools": "require('clientnode').default"
+          "fileSystem": "fileSystem",
+          "parser": "parser",
+          "path": "path",
+          "pluginAPI": "pluginAPI",
+          "plugins": "plugins",
+          "tools": "tools"
         },
         "execution": {},
         "plain": {}
