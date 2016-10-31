@@ -56,7 +56,7 @@ export default class Template {
             ):Promise<void> => {
                 const newFilePath:string = file.path.substring(
                     0, file.path.length - path.extname(file.path).length)
-                let newFileExists:?boolean
+                let newFileExists:boolean = false
                 try {
                     newFileExists = await Tools.isFile(newFilePath)
                 } catch (error) {
