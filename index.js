@@ -91,13 +91,13 @@ export default class Template {
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
                     scope[name] = (new Function(
-                        'configuration', 'currentPath', 'fileSystem', 'path',
-                        'pluginAPI', 'require', 'scope', 'template', 'tools',
-                        'webNodePath', type === 'evaluation' ?
+                        'configuration', 'currentPath', 'fileSystem', 'parser',
+                        'path', 'pluginAPI', 'require', 'scope', 'template',
+                        'tools', 'webNodePath', type === 'evaluation' ?
                         `return ${configuration.template.scope[type][name]}` :
                         configuration.template.scope[type][name]
                     ))(
-                        configuration, process.cwd(), fileSystem, path,
+                        configuration, process.cwd(), fileSystem, ejs, path,
                         PluginAPI, eval('require'), scope, Template, Tools,
                         __dirname)
         const templateRenderingPromises:Array<Promise<string>> = []
