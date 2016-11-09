@@ -44,7 +44,7 @@ export default class Template {
      * @param plugins - List of all loaded plugins.
      * @returns Given object of services.
      */
-    static async exit(
+    static async shouldExit(
         services:Services, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Services> {
         const templateOutputRemoveingPromises:Array<Promise<string>> = []
@@ -174,23 +174,29 @@ export default class Template {
     static async getFiles(
         configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Array<File>> {
-        return (await Tools.walkDirectoryRecursively(
-            configuration.context.path, (file:File):?false => {
-                if (path.basename(file.path).startsWith('.'))
-                    return false
-                for (const type:string in configuration.plugin.directories)
-                    if (configuration.plugin.directories.hasOwnProperty(
-                        type
-                    ) && path.dirname(file.path) === path.resolve(
-                        configuration.plugin.directories[type].path
-                    ) && !plugins.map((
-                        plugin:Plugin
-                    ):string => plugin.path).includes(file.path))
+        try {
+            var a = (await Tools.walkDirectoryRecursively(
+                configuration.context.path, (file:File):?false => {
+                    if (path.basename(file.path).startsWith('.'))
                         return false
-            }
-        )).filter((file:File):boolean =>
-            configuration.template.extensions.includes(path.extname(file.path))
-        )
+                    for (const type:string in configuration.plugin.directories)
+                        if (configuration.plugin.directories.hasOwnProperty(
+                            type
+                        ) && path.dirname(file.path) === path.resolve(
+                            configuration.plugin.directories[type].path
+                        ) && !plugins.map((
+                            plugin:Plugin
+                        ):string => plugin.path).includes(file.path))
+                            return false
+                }
+                )).filter((file:File):boolean => file.stat.isFile(
+                ) && configuration.template.extensions.includes(path.extname(
+                    file.path)))
+            console.log(a)
+            return a
+        } catch (error) {
+            throw error
+        }
     }
     // endregion
 }

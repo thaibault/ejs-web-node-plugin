@@ -53,6 +53,14 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     const targetFilePath:string = './dummyPlugin/dummy.txt'
     if (await Tools.isFile(targetFilePath))
         fileSystem.unlinkSync(targetFilePath)
+    configuration.template.scope.plain.mockupData = {
+        a: 2,
+        b: [1, 2, {a: 'test'}],
+        c: {
+            d: {a: 2},
+            e: [null, 2, 3]
+        }
+    }
     let result:any
     try {
         result = await Index.postConfigurationLoaded(
@@ -62,6 +70,11 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     }
     assert.deepEqual(result, configuration)
     assert.ok(await Tools.isFile(targetFilePath))
+    // NOTE: Uncomment following line to see resulting rendered dummy template.
+    /*
+    console.info(fileSystem.readFileSync(targetFilePath, {
+        encoding: configuration.encoding}))
+    *
     fileSystem.unlinkSync(targetFilePath)
     done()
 })
