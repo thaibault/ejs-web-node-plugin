@@ -31,12 +31,13 @@
   "devDependencies": {
     "documentation-website": "latest",
     "qunit-cli": "latest",
+    "rimraf": "latest",
     "source-map-support": "latest"
   },
   "scripts": {
     "build": "webOptimizer build",
     "buildDLL": "webOptimizer buildDLL",
-    "clear": "webOptimizer clear && rm --force dummyPlugin/dummy.txt &>/dev/null",
+    "clear": "webOptimizer clear && rimraf dummyPlugin/dummy.txt",
     "document": "webOptimizer document",
     "lint": "webOptimizer typeCheck && webOptimizer lint",
     "prepublish": "npm run build",

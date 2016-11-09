@@ -44,7 +44,7 @@ export default class Template {
      * @param plugins - List of all loaded plugins.
      * @returns Given object of services.
      */
-    static async exit(
+    static async shouldExit(
         services:Services, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Services> {
         const templateOutputRemoveingPromises:Array<Promise<string>> = []
@@ -66,6 +66,8 @@ export default class Template {
                     fileSystem.unlink(newFilePath, (error:?Error):void => (
                         error
                     ) ? reject(error) : resolve(newFilePath))
+                else
+                    resolve(newFileExists)
             }))
         await Promise.all(templateOutputRemoveingPromises)
         return services
@@ -149,8 +151,8 @@ export default class Template {
                             try {
                                 fileSystem.writeFile(newFilePath, result, {
                                     encoding: configuration.encoding,
-                                    mode: 0o666,
-                                    flag: 'w'
+                                    flag: 'w',
+                                    mode: 0o666
                                 }, (error:?Error):void => (error) ? reject(
                                     error
                                 ) : resolve(newFilePath))
@@ -188,9 +190,9 @@ export default class Template {
                     ):string => plugin.path).includes(file.path))
                         return false
             }
-        )).filter((file:File):boolean =>
-            configuration.template.extensions.includes(path.extname(file.path))
-        )
+            )).filter((file:File):boolean => file.stat.isFile(
+            ) && configuration.template.extensions.includes(path.extname(
+                file.path)))
     }
     // endregion
 }
