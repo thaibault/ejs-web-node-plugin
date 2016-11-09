@@ -35,13 +35,13 @@ const configuration:Configuration = Tools.extendObject(
     }}}})
 // region tests
 // / region api
-QUnit.test('exit', async (assert:Object):Promise<void> => {
+QUnit.test('shouldExit', async (assert:Object):Promise<void> => {
     const done:Function = assert.async()
     const targetFilePath:string = './dummyPlugin/dummy.txt'
     fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
     try {
         assert.ok(await Tools.isFile(targetFilePath))
-        await Index.exit({}, configuration, [])
+        await Index.shouldExit({}, configuration, [])
     } catch (error) {
         console.error(error)
     }
@@ -74,7 +74,7 @@ QUnit.test('postConfigurationLoaded', async (assert:Object):Promise<void> => {
     /*
     console.info(fileSystem.readFileSync(targetFilePath, {
         encoding: configuration.encoding}))
-    *
+    */
     fileSystem.unlinkSync(targetFilePath)
     done()
 })
