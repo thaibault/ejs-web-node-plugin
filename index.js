@@ -100,9 +100,10 @@ export default class Template {
                         `return ${configuration.template.scope[type][name]}` :
                         configuration.template.scope[type][name]
                     ))(
-                        configuration, process.cwd(), fileSystem, ejs, path,
-                        PluginAPI, plugins, eval('require'), scope, Template,
-                        Tools, __dirname)
+                        Tools.copyLimitedRecursively(configuration, -1, true),
+                        process.cwd(), fileSystem, ejs, path, PluginAPI,
+                        plugins, eval('require'), scope, Template, Tools,
+                        __dirname)
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const file:File of await Template.getFiles(
             configuration, plugins
@@ -189,8 +190,7 @@ export default class Template {
                         plugin:Plugin
                     ):string => plugin.path).includes(file.path))
                         return false
-            }
-            )).filter((file:File):boolean => file.stat.isFile(
+            })).filter((file:File):boolean => file.stat.isFile(
             ) && configuration.template.extensions.includes(path.extname(
                 file.path)))
     }
