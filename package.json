@@ -1,38 +1,26 @@
 {
   "name": "templatewebnodeplugin",
   "version": "1.0.29",
+  "license": "CC-BY-3.0",
   "description": "A static template processor for webNode.",
+  "homepage": "http://torben.website/templateWebNodePlugin",
   "documentationWebsite": {
     "name": "templateWebNodePlugin",
     "trackingCode": "TODO"
   },
-  "homepage": "http://torben.website/templateWebNodePlugin",
-  "license": "CC-BY-3.0",
-  "main": "index.compiled.js",
-  "files": [
-    "index.js"
-  ],
   "keywords": [
     "web",
     "backend",
     "static",
     "template"
   ],
+  "files": [
+    "index.js"
+  ],
+  "main": "index.compiled.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/thaibault/templateWebNodePlugin.git"
-  },
-  "dependencies": {
-    "clientnode": "latest",
-    "ejs": "latest",
-    "weboptimizer": "latest",
-    "web-node": "latest"
-  },
-  "devDependencies": {
-    "documentation-website": "latest",
-    "qunit-cli": "latest",
-    "rimraf": "latest",
-    "source-map-support": "latest"
   },
   "scripts": {
     "build": "webOptimizer build",
@@ -48,6 +36,18 @@
     "updateDocumentation": "documentationWebsite --log-level info",
     "watch": "webOptimizer build --watch",
     "watchDLL": "webOptimizer buildDLL --watch"
+  },
+  "dependencies": {
+    "clientnode": "latest",
+    "ejs": "latest",
+    "weboptimizer": "latest",
+    "web-node": "latest"
+  },
+  "devDependencies": {
+    "documentation-website": "latest",
+    "qunit-cli": "latest",
+    "rimraf": "latest",
+    "source-map-support": "latest"
   },
   "webNode": {
     "template": {
