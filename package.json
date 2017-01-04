@@ -45,7 +45,6 @@
   },
   "devDependencies": {
     "documentation-website": "latest",
-    "qunit-cli": "latest",
     "rimraf": "latest",
     "source-map-support": "latest"
   },
@@ -81,6 +80,7 @@
   "webOptimizer": {
     "module": {
       "aliases": {
+        "clientnode/test$": "clientnode/test.compiled",
         "web-node/configurator$": "web-node/configurator.compiled",
         "web-node/pluginAPI$": "web-node/pluginAPI.compiled"
       }
