@@ -198,7 +198,9 @@ export default class Template {
                     const locationToIgnore:string of
                     configuration.template.locationsToIgnore
                 )
-                    if (file.path.startsWith(locationToIgnore))
+                    if (file.path.startsWith(path.resolve(
+                        configuration.context.path, locationToIgnore
+                    )))
                         return false
             })).filter((file:File):boolean => file.stat.isFile(
             ) && configuration.template.extensions.includes(path.extname(
