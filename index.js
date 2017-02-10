@@ -177,18 +177,28 @@ export default class Template {
     static async getFiles(
         configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Array<File>> {
+        const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
+            plugin.path)
         return (await Tools.walkDirectoryRecursively(
             configuration.context.path, (file:File):?false => {
                 if (path.basename(file.path).startsWith('.'))
                     return false
+                /*
+                    NOTE: We want to ignore all known plugin locations which
+                    aren't loaded.
+                */
                 for (const type:string in configuration.plugin.directories)
                     if (configuration.plugin.directories.hasOwnProperty(
                         type
                     ) && path.dirname(file.path) === path.resolve(
                         configuration.plugin.directories[type].path
-                    ) && !plugins.map((
-                        plugin:Plugin
-                    ):string => plugin.path).includes(file.path))
+                    ) && !pluginPaths.includes(file.path))
+                        return false
+                for (
+                    const locationToIgnore:string of
+                    configuration.template.locationsToIgnore
+                )
+                    if (file.path.startsWith(locationToIgnore))
                         return false
             })).filter((file:File):boolean => file.stat.isFile(
             ) && configuration.template.extensions.includes(path.extname(

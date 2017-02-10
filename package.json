@@ -53,6 +53,7 @@
       "extensions": [
         ".tpl"
       ],
+      "locationsToIgnore": [],
       "options": {
         "cache": true,
         "debug": {
@@ -89,7 +90,7 @@
       },
       "preprocessor": {
         "javaScript": {
-          "configuration": {
+          "options": {
             "presets": {
               "__evaluate__": "(self.targetTechnology === 'node' ? ['es2017-node7'] : [['modern-browsers', {loose: true}], 'es2017']).concat('stage-0')"
             }
