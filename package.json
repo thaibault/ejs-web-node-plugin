@@ -53,6 +53,7 @@
       "extensions": [
         ".tpl"
       ],
+      "locationsToIgnore": [],
       "options": {
         "cache": true,
         "debug": {
