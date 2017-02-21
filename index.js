@@ -27,6 +27,7 @@ import path from 'path'
 try {
     require('source-map-support/register')
 } catch (error) {}
+import WebNodePluginAPI from 'web-node/pluginAPI'
 import type {Configuration, Plugin, Services} from 'web-node/type'
 
 import PluginAPI from 'web-node/pluginAPI'
@@ -73,22 +74,19 @@ export default class Template {
         return services
     }
     /**
-     * Triggered hook when at least one plugin has a new configuration file and
-     * configuration object has been changed.
-     * @param configuration - Updated configuration object.
-     * @param pluginsWithChangedConfiguration - List of plugins which have a
-     * changed plugin configuration.
-     * @param oldConfiguration - Old configuration object.
+     * Indicates the template rendering.
+     * @param scope - Scope to use for rendering templates.
+     * @param configuration - Configuration object.
      * @param plugins - List of all loaded plugins.
-     * @returns New configuration object to use.
+     * @returns Scope uses for template rendering.
      */
-    static async postConfigurationLoaded(
-        configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>,
-        oldConfiguration:Configuration, plugins:Array<Plugin>
-    ):Promise<Configuration> {
-        const scope:Object = Tools.copyLimitedRecursively(
-            configuration.template.scope.plain)
+    static async templateRender(
+        givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
+    ):Promise<Object> {
+        const scope:Object = Tools.extendObject(
+            true, Tools.copyLimitedRecursively(
+                configuration.template.scope.plain
+            ), givenScope || {})
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
@@ -104,10 +102,11 @@ export default class Template {
                         process.cwd(), fileSystem, ejs, path, PluginAPI,
                         plugins, eval('require'), scope, Template, Tools,
                         __dirname)
+        const templateFiles:Array<File> = await WebNodePluginAPI.callStack(
+            'preTemplateRender', plugins, configuration,
+            await Template.getFiles(configuration, plugins), scope)
         const templateRenderingPromises:Array<Promise<string>> = []
-        for (const file:File of await Template.getFiles(
-            configuration, plugins
-        ))
+        for (const file:File of templateFiles)
             templateRenderingPromises.push(new Promise((
                 resolve:Function, reject:Function
             ):void => fileSystem.readFile(file.path, {
@@ -164,6 +163,27 @@ export default class Template {
                 }
             })))
         await Promise.all(templateRenderingPromises)
+        return await WebNodePluginAPI.callStack(
+            'postTemplateRender', plugins, configuration, scope, templateFiles)
+    }
+    /**
+     * Triggered hook when at least one plugin has a new configuration file and
+     * configuration object has been changed.
+     * @param configuration - Updated configuration object.
+     * @param pluginsWithChangedConfiguration - List of plugins which have a
+     * changed plugin configuration.
+     * @param oldConfiguration - Old configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @returns New configuration object to use.
+     */
+    static async postConfigurationLoaded(
+        configuration:Configuration,
+        pluginsWithChangedConfiguration:Array<Plugin>,
+        oldConfiguration:Configuration, plugins:Array<Plugin>
+    ):Promise<Configuration> {
+        if (configuration.template.renderAfterConfigurationUpdates)
+            await WebNodePluginAPI.callStack(
+                'templateRender', plugins, configuration)
         return configuration
     }
     // endregion
