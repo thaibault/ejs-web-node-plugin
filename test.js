@@ -65,6 +65,8 @@ registerTest(async function():Promise<void> {
         assert.notOk(await Tools.isFile('./dummyPlugin/dummy.txt'))
         done()
     })
+    this.test('preLoadService', (assert:Object):void => assert.ok(
+        Index.preLoadService({}).template.hasOwnProperty('render')))
     // / endregion
     // / region helper
     this.test('getFiles', async (assert:Object):Promise<void> => {

@@ -92,6 +92,15 @@ export default class Template {
             Template.render(null, configuration, plugins)
         return configuration
     }
+    /**
+     * Appends an application server to the web node services.
+     * @param services - An object with stored service instances.
+     * @returns Given and extended object of services.
+     */
+    static preLoadService(services:Services):Services {
+        services.template = {render: Template.render.bind(Template)}
+        return services
+    }
     // endregion
     // region helper
     /**
