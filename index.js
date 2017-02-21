@@ -39,6 +39,34 @@ import PluginAPI from 'web-node/pluginAPI'
 export default class Template {
     // region api
     /**
+     * Triggered hook when at least one plugin has a new configuration file and
+     * configuration object has been changed.
+     * @param configuration - Updated configuration object.
+     * @param pluginsWithChangedConfiguration - List of plugins which have a
+     * changed plugin configuration.
+     * @param oldConfiguration - Old configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @returns New configuration object to use.
+     */
+    static async postConfigurationLoaded(
+        configuration:Configuration,
+        pluginsWithChangedConfiguration:Array<Plugin>,
+        oldConfiguration:Configuration, plugins:Array<Plugin>
+    ):Promise<Configuration> {
+        if (configuration.template.renderAfterConfigurationUpdates)
+            Template.render(null, configuration, plugins)
+        return configuration
+    }
+    /**
+     * Appends an application server to the web node services.
+     * @param services - An object with stored service instances.
+     * @returns Given and extended object of services.
+     */
+    static preLoadService(services:Services):Services {
+        services.template = {render: Template.render.bind(Template)}
+        return services
+    }
+    /**
      * Application will be closed soon.
      * @param services - An object with stored service instances.
      * @param configuration - Updated configuration object.
@@ -71,34 +99,6 @@ export default class Template {
                     resolve(newFileExists)
             }))
         await Promise.all(templateOutputRemoveingPromises)
-        return services
-    }
-    /**
-     * Triggered hook when at least one plugin has a new configuration file and
-     * configuration object has been changed.
-     * @param configuration - Updated configuration object.
-     * @param pluginsWithChangedConfiguration - List of plugins which have a
-     * changed plugin configuration.
-     * @param oldConfiguration - Old configuration object.
-     * @param plugins - List of all loaded plugins.
-     * @returns New configuration object to use.
-     */
-    static async postConfigurationLoaded(
-        configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>,
-        oldConfiguration:Configuration, plugins:Array<Plugin>
-    ):Promise<Configuration> {
-        if (configuration.template.renderAfterConfigurationUpdates)
-            Template.render(null, configuration, plugins)
-        return configuration
-    }
-    /**
-     * Appends an application server to the web node services.
-     * @param services - An object with stored service instances.
-     * @returns Given and extended object of services.
-     */
-    static preLoadService(services:Services):Services {
-        services.template = {render: Template.render.bind(Template)}
         return services
     }
     // endregion
