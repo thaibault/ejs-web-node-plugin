@@ -50,40 +50,6 @@ registerTest(async function():Promise<void> {
         assert.notOk(await Tools.isFile(targetFilePath))
         done()
     })
-    this.test('templateRender', async (assert:Object):Promise<void> => {
-        const done:Function = assert.async()
-        const targetFilePath:string = './dummyPlugin/dummy.txt'
-        if (await Tools.isFile(targetFilePath))
-            fileSystem.unlinkSync(targetFilePath)
-        configuration.template.scope.plain.mockupData = {
-            a: 2,
-            b: [1, 2, {a: 'test'}],
-            c: {
-                d: {a: 2},
-                e: [null, 2, 3]
-            }
-        }
-        let result:any
-        try {
-            result = await Index.templateRender(null, configuration, [])
-        } catch (error) {
-            console.error(error)
-        }
-        assert.deepEqual(
-            // IgnoreTypeCheck
-            result.mockupData, configuration.template.scope.plain.mockupData)
-        assert.ok(await Tools.isFile(targetFilePath))
-        /*
-            NOTE: Uncomment following line to see resulting rendered dummy
-            template.
-        */
-        /*
-        console.info(fileSystem.readFileSync(targetFilePath, {
-            encoding: configuration.encoding}))
-        */
-        fileSystem.unlinkSync(targetFilePath)
-        done()
-    })
     this.test('postConfigurationLoaded', async (
         assert:Object
     ):Promise<void> => {
@@ -110,6 +76,40 @@ registerTest(async function():Promise<void> {
         } catch (error) {
             console.error(error)
         }
+        done()
+    })
+    this.test('render', async (assert:Object):Promise<void> => {
+        const done:Function = assert.async()
+        const targetFilePath:string = './dummyPlugin/dummy.txt'
+        if (await Tools.isFile(targetFilePath))
+            fileSystem.unlinkSync(targetFilePath)
+        configuration.template.scope.plain.mockupData = {
+            a: 2,
+            b: [1, 2, {a: 'test'}],
+            c: {
+                d: {a: 2},
+                e: [null, 2, 3]
+            }
+        }
+        let result:any
+        try {
+            result = await Index.render(null, configuration, [])
+        } catch (error) {
+            console.error(error)
+        }
+        assert.deepEqual(
+            // IgnoreTypeCheck
+            result.mockupData, configuration.template.scope.plain.mockupData)
+        assert.ok(await Tools.isFile(targetFilePath))
+        /*
+            NOTE: Uncomment following line to see resulting rendered dummy
+            template.
+        */
+        /*
+        console.info(fileSystem.readFileSync(targetFilePath, {
+            encoding: configuration.encoding}))
+        */
+        fileSystem.unlinkSync(targetFilePath)
         done()
     })
     // / endregion
