@@ -50,9 +50,7 @@ registerTest(async function():Promise<void> {
         assert.notOk(await Tools.isFile(targetFilePath))
         done()
     })
-    this.test('postConfigurationLoaded', async (
-        assert:Object
-    ):Promise<void> => {
+    this.test('templateRender', async (assert:Object):Promise<void> => {
         const done:Function = assert.async()
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         if (await Tools.isFile(targetFilePath))
@@ -67,19 +65,37 @@ registerTest(async function():Promise<void> {
         }
         let result:any
         try {
-            result = await Index.postConfigurationLoaded(
-                configuration, [], configuration, [])
+            result = await Index.templateRender(null, configuration, [])
         } catch (error) {
             console.error(error)
         }
-        assert.deepEqual(result, configuration)
+        assert.deepEqual(
+            result.mockupData, configuration.template.scope.plain.mockupData)
         assert.ok(await Tools.isFile(targetFilePath))
-        // NOTE: Uncomment following line to see resulting rendered dummy template.
+        /*
+            NOTE: Uncomment following line to see resulting rendered dummy
+            template.
+        */
         /*
         console.info(fileSystem.readFileSync(targetFilePath, {
             encoding: configuration.encoding}))
         */
         fileSystem.unlinkSync(targetFilePath)
+        done()
+    })
+    this.test('postConfigurationLoaded', async (
+        assert:Object
+    ):Promise<void> => {
+        const done:Function = assert.async()
+        let result:any
+        configuration.template.renderAfterConfigurationUpdates = false
+        try {
+            result = await Index.postConfigurationLoaded(
+                configuration, [], configuration, [])
+        } catch (error) {
+            console.error(error)
+        }
+        assert.notOk(await Tools.isFile('./dummyPlugin/dummy.txt'))
         done()
     })
     // / endregion
