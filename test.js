@@ -37,19 +37,6 @@ registerTest(async function():Promise<void> {
     // endregion
     // region tests
     // / region api
-    this.test('shouldExit', async (assert:Object):Promise<void> => {
-        const done:Function = assert.async()
-        const targetFilePath:string = './dummyPlugin/dummy.txt'
-        fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
-        try {
-            assert.ok(await Tools.isFile(targetFilePath))
-            await Index.shouldExit({}, configuration, [])
-        } catch (error) {
-            console.error(error)
-        }
-        assert.notOk(await Tools.isFile(targetFilePath))
-        done()
-    })
     this.test('postConfigurationLoaded', async (
         assert:Object
     ):Promise<void> => {
@@ -67,6 +54,19 @@ registerTest(async function():Promise<void> {
     })
     this.test('preLoadService', (assert:Object):void => assert.ok(
         Index.preLoadService({}).template.hasOwnProperty('render')))
+    this.test('shouldExit', async (assert:Object):Promise<void> => {
+        const done:Function = assert.async()
+        const targetFilePath:string = './dummyPlugin/dummy.txt'
+        fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
+        try {
+            assert.ok(await Tools.isFile(targetFilePath))
+            await Index.shouldExit({}, configuration, [])
+        } catch (error) {
+            console.error(error)
+        }
+        assert.notOk(await Tools.isFile(targetFilePath))
+        done()
+    })
     // / endregion
     // / region helper
     this.test('getFiles', async (assert:Object):Promise<void> => {
