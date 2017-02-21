@@ -74,13 +74,72 @@ export default class Template {
         return services
     }
     /**
-     * Indicates the template rendering.
+     * Triggered hook when at least one plugin has a new configuration file and
+     * configuration object has been changed.
+     * @param configuration - Updated configuration object.
+     * @param pluginsWithChangedConfiguration - List of plugins which have a
+     * changed plugin configuration.
+     * @param oldConfiguration - Old configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @returns New configuration object to use.
+     */
+    static async postConfigurationLoaded(
+        configuration:Configuration,
+        pluginsWithChangedConfiguration:Array<Plugin>,
+        oldConfiguration:Configuration, plugins:Array<Plugin>
+    ):Promise<Configuration> {
+        if (configuration.template.renderAfterConfigurationUpdates)
+            Template.render(null, configuration, plugins)
+        return configuration
+    }
+    // endregion
+    // region helper
+    /**
+     * Retrieves all files to process.
+     * @param configuration - Updated configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @returns A promise holding all resolved files.
+     */
+    static async getFiles(
+        configuration:Configuration, plugins:Array<Plugin>
+    ):Promise<Array<File>> {
+        const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
+            plugin.path)
+        return (await Tools.walkDirectoryRecursively(
+            configuration.context.path, (file:File):?false => {
+                if (path.basename(file.path).startsWith('.'))
+                    return false
+                /*
+                    NOTE: We want to ignore all known plugin locations which
+                    aren't loaded.
+                */
+                for (const type:string in configuration.plugin.directories)
+                    if (configuration.plugin.directories.hasOwnProperty(
+                        type
+                    ) && path.dirname(file.path) === path.resolve(
+                        configuration.plugin.directories[type].path
+                    ) && !pluginPaths.includes(file.path))
+                        return false
+                for (
+                    const locationToIgnore:string of
+                    configuration.template.locationsToIgnore
+                )
+                    if (file.path.startsWith(path.resolve(
+                        configuration.context.path, locationToIgnore
+                    )))
+                        return false
+            })).filter((file:File):boolean => file.stat.isFile(
+            ) && configuration.template.extensions.includes(path.extname(
+                file.path)))
+    }
+    /**
+     * Triggers template rendering.
      * @param scope - Scope to use for rendering templates.
      * @param configuration - Configuration object.
      * @param plugins - List of all loaded plugins.
      * @returns Scope uses for template rendering.
      */
-    static async templateRender(
+    static async render(
         givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Object> {
         const scope:Object = Tools.extendObject(
@@ -165,66 +224,6 @@ export default class Template {
         await Promise.all(templateRenderingPromises)
         return await WebNodePluginAPI.callStack(
             'postTemplateRender', plugins, configuration, scope, templateFiles)
-    }
-    /**
-     * Triggered hook when at least one plugin has a new configuration file and
-     * configuration object has been changed.
-     * @param configuration - Updated configuration object.
-     * @param pluginsWithChangedConfiguration - List of plugins which have a
-     * changed plugin configuration.
-     * @param oldConfiguration - Old configuration object.
-     * @param plugins - List of all loaded plugins.
-     * @returns New configuration object to use.
-     */
-    static async postConfigurationLoaded(
-        configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>,
-        oldConfiguration:Configuration, plugins:Array<Plugin>
-    ):Promise<Configuration> {
-        if (configuration.template.renderAfterConfigurationUpdates)
-            await WebNodePluginAPI.callStack(
-                'templateRender', plugins, configuration)
-        return configuration
-    }
-    // endregion
-    // region helper
-    /**
-     * Retrieves all files to process.
-     * @param configuration - Updated configuration object.
-     * @param plugins - List of all loaded plugins.
-     * @returns A promise holding all resolved files.
-     */
-    static async getFiles(
-        configuration:Configuration, plugins:Array<Plugin>
-    ):Promise<Array<File>> {
-        const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
-            plugin.path)
-        return (await Tools.walkDirectoryRecursively(
-            configuration.context.path, (file:File):?false => {
-                if (path.basename(file.path).startsWith('.'))
-                    return false
-                /*
-                    NOTE: We want to ignore all known plugin locations which
-                    aren't loaded.
-                */
-                for (const type:string in configuration.plugin.directories)
-                    if (configuration.plugin.directories.hasOwnProperty(
-                        type
-                    ) && path.dirname(file.path) === path.resolve(
-                        configuration.plugin.directories[type].path
-                    ) && !pluginPaths.includes(file.path))
-                        return false
-                for (
-                    const locationToIgnore:string of
-                    configuration.template.locationsToIgnore
-                )
-                    if (file.path.startsWith(path.resolve(
-                        configuration.context.path, locationToIgnore
-                    )))
-                        return false
-            })).filter((file:File):boolean => file.stat.isFile(
-            ) && configuration.template.extensions.includes(path.extname(
-                file.path)))
     }
     // endregion
 }
