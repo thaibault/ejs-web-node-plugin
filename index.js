@@ -20,8 +20,8 @@
 // region imports
 import Tools from 'clientnode'
 import type {File, PlainObject} from 'clientnode'
-import fileSystem from 'fs'
 import ejs from 'ejs'
+import fileSystem from 'fs'
 import path from 'path'
 // NOTE: Only needed for debugging this file.
 try {
@@ -195,6 +195,9 @@ export default class Template {
                     if (!('plugins' in scope))
                         scope.plugins = plugins
                     let template:?Function = null
+                    if (configuration.template.useEscapedDelimiter)
+                        content = content.replace(/&lt;%/g, '<%').replace(
+                            /%&gt;/g, '%>')
                     try {
                         template = ejs.compile(content, options)
                     } catch (error) {

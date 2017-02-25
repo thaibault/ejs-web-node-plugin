@@ -76,7 +76,8 @@
         },
         "execution": {},
         "plain": {}
-      }
+      },
+      "useEscapedDelimiter": true
     }
   },
   "webOptimizer": {
