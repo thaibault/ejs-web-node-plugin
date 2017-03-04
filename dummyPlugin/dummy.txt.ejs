@@ -21,3 +21,13 @@ Configurations:
 <%- list.join(', ') %>
 
 data = <%- tools.convertCircularObjectToJSON(typeof mockupData === 'undefined' ? {} : mockupData) %>;
+
+<% let includedVariable = 1 %>
+
+<% include dummyInclude.txt %>
+
+<%- include('dummyInclude.txt', {includedVariable: 2}) %>
+
+<% const name = 'Include' %>
+
+<%- include(`dummy${name}.txt`, {includedVariable}) %>
