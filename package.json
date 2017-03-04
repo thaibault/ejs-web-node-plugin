@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "clientnode": "latest",
-    "ejs2": "latest",
+    "ejs": "latest",
     "weboptimizer": "latest",
     "web-node": "latest"
   },
