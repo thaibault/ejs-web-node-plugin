@@ -74,7 +74,7 @@ registerTest(async function():Promise<void> {
         try {
             assert.strictEqual(
                 path.basename((await Index.getFiles(configuration, []))[0].path),
-                'dummy.txt.tpl')
+                'dummy.txt.ejs')
         } catch (error) {
             console.error(error)
         }

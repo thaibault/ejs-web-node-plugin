@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "clientnode": "latest",
-    "ejs": "latest",
+    "ejs2": "latest",
     "weboptimizer": "latest",
     "web-node": "latest"
   },
@@ -51,7 +51,7 @@
   "webNode": {
     "template": {
       "extensions": [
-        ".tpl"
+        ".ejs"
       ],
       "locationsToIgnore": [],
       "options": {
