@@ -20,7 +20,7 @@
 // region imports
 import Tools from 'clientnode'
 import type {File, PlainObject} from 'clientnode'
-import ejs from 'ejs2'
+import ejs from 'ejs'
 import fileSystem from 'fs'
 import path from 'path'
 // NOTE: Only needed for debugging this file.
