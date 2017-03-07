@@ -53,7 +53,12 @@
       "extensions": [
         ".ejs"
       ],
-      "locationsToIgnore": [],
+      "locationsToIgnore": [
+        "backup",
+        "database",
+        "log",
+        "mockup"
+      ],
       "options": {
         "cache": true,
         "debug": {
