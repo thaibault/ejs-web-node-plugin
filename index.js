@@ -129,14 +129,25 @@ export default class Template {
                         configuration.plugin.directories[type].path
                     ) && !pluginPaths.includes(file.path))
                         return false
+                /*
+                    NOTE: We ignore absolute defined locations and relative
+                    defined in each loaded plugin location.
+                */
                 for (
                     const locationToIgnore:string of
                     configuration.template.locationsToIgnore
                 )
-                    if (file.path.startsWith(path.resolve(
-                        configuration.context.path, locationToIgnore
-                    )))
-                        return false
+                    if (locationToIgnore.startsWith('/')) {
+                        if (file.path.startsWith(path.resolve(
+                            configuration.context.path, locationToIgnore
+                        )))
+                            return false
+                    } else
+                        for (const pluginPath:string of pluginPaths)
+                            if (file.path.startsWith(path.resolve(
+                                pluginPath, locationToIgnore
+                            )))
+                                return false
             })).filter((file:File):boolean => file.stat.isFile(
             ) && configuration.template.extensions.includes(path.extname(
                 file.path)))
