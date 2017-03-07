@@ -72,7 +72,7 @@
           "path": "path",
           "pluginAPI": "pluginAPI",
           "plugins": "plugins",
-          "tools": "tools"
+          "Tools": "Tools"
         },
         "execution": {},
         "plain": {}
