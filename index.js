@@ -138,7 +138,7 @@ export default class Template {
                     configuration.template.locationsToIgnore
                 )
                     if (locationToIgnore.startsWith('/')) {
-                        if (file.path.startsWith(path.resolve(
+                        if (file.path.startsWith(path.join(
                             configuration.context.path, locationToIgnore
                         )))
                             return false
