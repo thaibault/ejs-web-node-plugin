@@ -161,7 +161,7 @@ export default class Template {
                     scope[name] = (new Function(
                         'configuration', 'currentPath', 'fileSystem', 'parser',
                         'path', 'pluginAPI', 'plugins', 'require', 'scope',
-                        'template', 'tools', 'webNodePath',
+                        'template', 'Tools', 'webNodePath',
                         type === 'evaluation' ?
                         `return ${configuration.template.scope[type][name]}` :
                         configuration.template.scope[type][name]
