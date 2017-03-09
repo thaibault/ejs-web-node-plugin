@@ -171,7 +171,7 @@ export default class Template {
                 if (configuration.template.scope[type].hasOwnProperty(name))
                     scope[name] = (new Function(
                         'configuration', 'currentPath', 'fileSystem', 'parser',
-                        'path', 'pluginAPI', 'plugins', 'require', 'scope',
+                        'path', 'PluginAPI', 'plugins', 'require', 'scope',
                         'template', 'Tools', 'webNodePath',
                         type === 'evaluation' ?
                         `return ${configuration.template.scope[type][name]}` :

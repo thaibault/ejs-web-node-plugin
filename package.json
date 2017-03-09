@@ -75,7 +75,7 @@
           "fileSystem": "fileSystem",
           "parser": "parser",
           "path": "path",
-          "pluginAPI": "pluginAPI",
+          "PluginAPI": "PluginAPI",
           "plugins": "plugins",
           "Tools": "Tools"
         },
