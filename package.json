@@ -51,6 +51,7 @@
   "webNode": {
     "template": {
       "extensions": [
+        ".html.js",
         ".ejs"
       ],
       "locationsToIgnore": [
