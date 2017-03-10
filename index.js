@@ -189,8 +189,7 @@ export default class Template {
             templateRenderingPromises.push(new Promise((
                 resolve:Function, reject:Function
             ):void => fileSystem.readFile(file.path, {
-                encoding: configuration.encoding,
-                flag: 'r'
+                encoding: configuration.encoding
             }, (error:?Error, content:string):void => {
                 if (error)
                     reject(error)
@@ -209,15 +208,18 @@ export default class Template {
                     if (configuration.template.useEscapedDelimiter)
                         content = content.replace(/&lt;%/g, '<%').replace(
                             /%&gt;/g, '%>')
-                    try {
-                        template = ejs.compile(content, options)
-                    } catch (error) {
-                        console.error(
-                            `Error during compiling template "` +
-                            `${options.filename}": ` + Tools.representObject(
-                                error))
-                        reject(error)
-                    }
+                    if (path.extname(file.path) === '.js')
+                        template = eval('require')(file.path)
+                    else
+                        try {
+                            template = ejs.compile(content, options)
+                        } catch (error) {
+                            console.error(
+                                `Error during compiling template "` +
+                                `${options.filename}": ` +
+                                Tools.representObject(error))
+                            reject(error)
+                        }
                     if (template) {
                         let result:?string = null
                         try {

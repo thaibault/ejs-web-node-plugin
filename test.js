@@ -72,9 +72,9 @@ registerTest(async function():Promise<void> {
     this.test('getFiles', async (assert:Object):Promise<void> => {
         const done:Function = assert.async()
         try {
-            assert.strictEqual(
-                path.basename((await Index.getFiles(configuration, []))[0].path),
-                'dummy.txt.ejs')
+            assert.strictEqual(path.basename((await Index.getFiles(
+                configuration, []
+            ))[0].path), 'dummy.txt.ejs')
         } catch (error) {
             console.error(error)
         }
