@@ -235,8 +235,7 @@ export default class Template {
                             try {
                                 fileSystem.writeFile(newFilePath, result, {
                                     encoding: configuration.encoding,
-                                    flag: 'w',
-                                    mode: 0o666
+                                    flag: 'w', mode: 0o666
                                 }, (error:?Error):void => (error) ? reject(
                                     error
                                 ) : resolve(newFilePath))
