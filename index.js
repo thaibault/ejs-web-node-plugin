@@ -212,7 +212,7 @@ export default class Template {
                             template = ejs.compile(content, options)
                         } catch (error) {
                             console.error(
-                                `Error during compiling template "` +
+                                `Error occurred during compiling template "` +
                                 `${options.filename}": ` +
                                 Tools.representObject(error))
                             reject(error)
@@ -223,8 +223,9 @@ export default class Template {
                             result = template(scope)
                         } catch (error) {
                             console.error(
-                                `Error during running template "` +
-                                `${options.filename}": ` +
+                                'Error occurred during running scope ' +
+                                `${Tools.representObject(scope)} against ` +
+                                `template "${options.filename}": ` +
                                 Tools.representObject(error))
                             reject(error)
                         }
