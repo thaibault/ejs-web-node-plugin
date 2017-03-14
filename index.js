@@ -205,9 +205,6 @@ export default class Template {
                     if (!('plugins' in scope))
                         scope.plugins = plugins
                     let template:?Function = null
-                    if (configuration.template.useEscapedDelimiter)
-                        content = content.replace(/&lt;%/g, '<%').replace(
-                            /%&gt;/g, '%>')
                     if (path.extname(file.path) === '.js')
                         template = eval('require')(file.path)
                     else
