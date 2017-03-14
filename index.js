@@ -222,10 +222,16 @@ export default class Template {
                         try {
                             result = template(scope)
                         } catch (error) {
+                            let scopeDescription:string = ''
+                            try {
+                                scopeDescription = Tools.representObject(scope)
+                                scopeDescription =
+                                    `scope ${scopeDescription} against `
+                            } catch (error) {}
                             console.error(
-                                'Error occurred during running scope ' +
-                                `${Tools.representObject(scope)} against ` +
-                                `template "${options.filename}": ` +
+                                'Error occurred during running ' +
+                                `${scopeDescription}template "` +
+                                `${templateFilePath}": ` +
                                 Tools.representObject(error))
                             reject(error)
                         }
