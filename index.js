@@ -199,8 +199,7 @@ export default class Template {
                 if (error)
                     reject(error)
                 else {
-                    const currentScope:Object = Tools.copyLimitedRecursively(
-                        scope, 1)
+                    const currentScope:Object = Tools.extendObject({}, scope)
                     const newFilePath:string = file.path.substring(
                         0, file.path.length - path.extname(file.path).length)
                     const currentOptions:PlainObject = Tools.extendObject({
@@ -230,7 +229,6 @@ export default class Template {
         return await WebNodePluginAPI.callStack(
             'postTemplateRender', plugins, configuration, scope, templateFiles)
     }
-    // TODO test
     /**
      * Generates a render function with given base scope to resolve includes.
      * @param configuration - Configuration object.

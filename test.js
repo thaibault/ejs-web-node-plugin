@@ -114,6 +114,19 @@ registerTest(async function():Promise<void> {
         fileSystem.unlinkSync(targetFilePath)
         done()
     })
+    this.test('renderFactory', async (assert:Object):Promise<void> => {
+        const configuration:PlainObject = {
+            context: {path: './'}, template: {extensions: ['.ejs']}}
+        const renderFunction:Function = Index.renderFactory(
+            configuration, {b: 2}, {c: 3})
+        assert.strictEqual(typeof renderFunction, 'function')
+        try {
+            renderFunction('a')
+        } catch (error) {
+            assert.ok(true)
+        }
+        renderFunction('dummyPlugin/dummy.txt', {configuration, Tools})
+    })
     // / endregion
     // endregion
 }, ['plain'])
