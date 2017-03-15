@@ -166,9 +166,9 @@ export default class Template {
         givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Object> {
         // TODO
-        const scope:Object = Tools.extendObject(
-            true, {include: Template.renderFactory(configuration)},
-            configuration.template.scope.plain, givenScope || {})
+        const scope:Object = Tools.extendObject(true, {
+            basePath: configuration.context.path
+        }, configuration.template.scope.plain, givenScope || {})
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
@@ -184,6 +184,7 @@ export default class Template {
                         process.cwd(), fileSystem, ejs, path, PluginAPI,
                         plugins, eval('require'), scope, Template, Tools,
                         __dirname)
+        scope.include = Template.renderFactory(configuration, scope)
         const templateFiles:Array<File> = await WebNodePluginAPI.callStack(
             'preTemplateRender', plugins, configuration,
             await Template.getFiles(configuration, plugins), scope)
@@ -197,16 +198,16 @@ export default class Template {
                 if (error)
                     reject(error)
                 else {
-                    const currentScope:Object = Tools.extendObject({
-                        include: Template.renderFactory(
-                            configuration, path.dirname(file.path))
-                    }, scope)
+                    const basePath:string = path.dirname(file.path)
+                    const currentScope:Object = Tools.extendObject(
+                        {}, scope, {basePath})
+                    currentScope.include = Template.renderFactory(
+                        configuration, currentScope)
                     const newFilePath:string = file.path.substring(
                         0, file.path.length - path.extname(file.path).length)
                     const options:PlainObject = Tools.copyLimitedRecursively(
                         configuration.template.options)
-                    options.filename = path.resolve(
-                        path.dirname(file.path), file.path)
+                    options.filename = path.resolve(basePath, file.path)
                     if (!('options' in currentScope))
                         currentScope.options = options
                     if (!('plugins' in currentScope))
@@ -219,9 +220,10 @@ export default class Template {
                             template = ejs.compile(content, options)
                         } catch (error) {
                             console.error(
-                                `Error occurred during compiling template "` +
-                                `${options.filename}": ` +
-                                Tools.representObject(error))
+                                `Error occurred during compiling template ` +
+                                `${options.filename}" with base path "` +
+                                `${basePath}": ` + Tools.representObject(
+                                    error))
                             reject(error)
                         }
                     if (template) {
@@ -238,8 +240,9 @@ export default class Template {
                             } catch (error) {}
                             console.error(
                                 'Error occurred during running ' +
-                                `${scopeDescription}template "${file.path}":` +
-                                ` ${Tools.representObject(error)}`)
+                                `${scopeDescription}template "${file.path}" ` +
+                                `with base path "${basePath}": ` +
+                                Tools.representObject(error))
                             reject(error)
                         }
                         if (result)
@@ -260,29 +263,31 @@ export default class Template {
         return await WebNodePluginAPI.callStack(
             'postTemplateRender', plugins, configuration, scope, templateFiles)
     }
+    // TODO test
     /**
-     * Generates a render function with given base path to resolve includes.
+     * Generates a render function with given base scope to resolve includes.
      * @param configuration - Configuration object.
-     * @param basPath - Base location to resolve includes relative to.
+     * @param scope - Base scope to extend from.
      * @returns Render function.
      */
     static renderFactory(
-        configuration:Configuration, basePath:string = ''
+        configuration:Configuration, scope:Object = {}
     ):Function {
-        if (!basePath)
-            basePath = configuration.context.path
-        return (
-            filePath:string, nestedLocals:Object = {}
-        ):string => {
+        if (!scope.basePath)
+            scope.basePath = configuration.context.path
+        return (filePath:string, nestedLocals:Object = {}):string => {
             let nestedOptions:Object = Tools.copyLimitedRecursively(
                 configuration.template.options)
             delete nestedOptions.client
             nestedOptions = Tools.extendObject(
                 true, {encoding: 'utf-8'}, nestedOptions,
                 nestedLocals.options || {})
-            filePath = path.resolve(basePath, filePath)
-            nestedLocals.include = Template.renderFactory(
-                configuration, path.dirname(filePath))
+            const nestedScope:Object = Tools.extendObject({}, scope)
+            filePath = path.resolve(scope.basePath, filePath)
+            nestedScope.basePath = path.dirname(filePath)
+            nestedScope.include = Template.renderFactory(
+                configuration, nestedScope)
+            Tools.extendObject(nestedScope, nestedLocals)
             let currentFilePath:?string = null
             for (const extension:string of [''].concat(
                 configuration.template.extensions
@@ -293,11 +298,11 @@ export default class Template {
                 }
             if (currentFilePath) {
                 if (path.extname(currentFilePath) === '.js')
-                    return eval('require')(currentFilePath)(nestedLocals)
+                    return eval('require')(currentFilePath)(nestedScope)
                 // IgnoreTypeCheck
                 return ejs.compile(fileSystem.readFileSync(
                     currentFilePath, nestedOptions
-                ), nestedOptions)(nestedLocals)
+                ), nestedOptions)(nestedScope)
             }
             throw new Error(
                 `Given template file "${filePath}" couldn't be resolved ` +
