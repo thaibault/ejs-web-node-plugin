@@ -63,7 +63,10 @@ export default class Template {
      * @returns Given and extended object of services.
      */
     static preLoadService(services:Services):Services {
-        services.template = {render: Template.render.bind(Template)}
+        services.template = {
+            render: Template.render.bind(Template),
+            renderFactory: Template.renderFactory.bind(Template)
+        }
         return services
     }
     /**
@@ -162,10 +165,10 @@ export default class Template {
     static async render(
         givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Object> {
+        // TODO
         const scope:Object = Tools.extendObject(
-            true, Tools.copyLimitedRecursively(
-                configuration.template.scope.plain
-            ), givenScope || {})
+            true, {include: Template.renderFactory(configuration)},
+            configuration.template.scope.plain, givenScope || {})
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
@@ -194,16 +197,20 @@ export default class Template {
                 if (error)
                     reject(error)
                 else {
+                    const currentScope:Object = Tools.extendObject({
+                        include: Template.renderFactory(
+                            configuration, path.dirname(file.path))
+                    }, scope)
                     const newFilePath:string = file.path.substring(
                         0, file.path.length - path.extname(file.path).length)
                     const options:PlainObject = Tools.copyLimitedRecursively(
                         configuration.template.options)
                     options.filename = path.resolve(
                         path.dirname(file.path), file.path)
-                    if (!('options' in scope))
-                        scope.options = options
-                    if (!('plugins' in scope))
-                        scope.plugins = plugins
+                    if (!('options' in currentScope))
+                        currentScope.options = options
+                    if (!('plugins' in currentScope))
+                        currentScope.plugins = plugins
                     let template:?Function = null
                     if (path.extname(file.path) === '.js')
                         template = eval('require')(file.path)
@@ -220,19 +227,19 @@ export default class Template {
                     if (template) {
                         let result:?string = null
                         try {
-                            result = template(scope)
+                            result = template(currentScope)
                         } catch (error) {
                             let scopeDescription:string = ''
                             try {
-                                scopeDescription = Tools.representObject(scope)
+                                scopeDescription = Tools.representObject(
+                                    currentScope)
                                 scopeDescription =
                                     `scope ${scopeDescription} against `
                             } catch (error) {}
                             console.error(
                                 'Error occurred during running ' +
-                                `${scopeDescription}template "` +
-                                `${templateFilePath}": ` +
-                                Tools.representObject(error))
+                                `${scopeDescription}template "${file.path}":` +
+                                ` ${Tools.representObject(error)}`)
                             reject(error)
                         }
                         if (result)
@@ -252,6 +259,51 @@ export default class Template {
         await Promise.all(templateRenderingPromises)
         return await WebNodePluginAPI.callStack(
             'postTemplateRender', plugins, configuration, scope, templateFiles)
+    }
+    /**
+     * Generates a render function with given base path to resolve includes.
+     * @param configuration - Configuration object.
+     * @param basPath - Base location to resolve includes relative to.
+     * @returns Render function.
+     */
+    static renderFactory(
+        configuration:Configuration, basePath:string = ''
+    ):Function {
+        if (!basePath)
+            basePath = configuration.context.path
+        return (
+            filePath:string, nestedLocals:Object = {}
+        ):string => {
+            let nestedOptions:Object = Tools.copyLimitedRecursively(
+                configuration.template.options)
+            delete nestedOptions.client
+            nestedOptions = Tools.extendObject(
+                true, {encoding: 'utf-8'}, nestedOptions,
+                nestedLocals.options || {})
+            filePath = path.resolve(basePath, filePath)
+            nestedLocals.include = Template.renderFactory(
+                configuration, path.dirname(filePath))
+            let currentFilePath:?string = null
+            for (const extension:string of [''].concat(
+                configuration.template.extensions
+            ))
+                if (Tools.isFileSync(filePath + extension)) {
+                    currentFilePath = filePath + extension
+                    break
+                }
+            if (currentFilePath) {
+                if (path.extname(currentFilePath) === '.js')
+                    return eval('require')(currentFilePath)(nestedLocals)
+                // IgnoreTypeCheck
+                return ejs.compile(fileSystem.readFileSync(
+                    currentFilePath, nestedOptions
+                ), nestedOptions)(nestedLocals)
+            }
+            throw new Error(
+                `Given template file "${filePath}" couldn't be resolved ` +
+                '(with known extensions: "' +
+                `${configuration.template.extensions.join('", "')}").`)
+        }
     }
     // endregion
 }
