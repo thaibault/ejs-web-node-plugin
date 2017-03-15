@@ -63,7 +63,10 @@ export default class Template {
      * @returns Given and extended object of services.
      */
     static preLoadService(services:Services):Services {
-        services.template = {render: Template.render.bind(Template)}
+        services.template = {
+            render: Template.render.bind(Template),
+            renderFactory: Template.renderFactory.bind(Template)
+        }
         return services
     }
     /**
@@ -162,10 +165,9 @@ export default class Template {
     static async render(
         givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Object> {
-        const scope:Object = Tools.extendObject(
-            true, Tools.copyLimitedRecursively(
-                configuration.template.scope.plain
-            ), givenScope || {})
+        const scope:Object = Tools.extendObject(true, {
+            basePath: configuration.context.path
+        }, configuration.template.scope.plain, givenScope || {})
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
@@ -181,6 +183,9 @@ export default class Template {
                         process.cwd(), fileSystem, ejs, path, PluginAPI,
                         plugins, eval('require'), scope, Template, Tools,
                         __dirname)
+        const options:PlainObject = Tools.copyLimitedRecursively(
+            configuration.template.options)
+        scope.include = Template.renderFactory(configuration, scope, options)
         const templateFiles:Array<File> = await WebNodePluginAPI.callStack(
             'preTemplateRender', plugins, configuration,
             await Template.getFiles(configuration, plugins), scope)
@@ -194,64 +199,125 @@ export default class Template {
                 if (error)
                     reject(error)
                 else {
+                    const currentScope:Object = Tools.copyLimitedRecursively(
+                        scope, 1)
                     const newFilePath:string = file.path.substring(
                         0, file.path.length - path.extname(file.path).length)
-                    const options:PlainObject = Tools.copyLimitedRecursively(
-                        configuration.template.options)
-                    options.filename = path.resolve(
-                        path.dirname(file.path), file.path)
-                    if (!('options' in scope))
-                        scope.options = options
-                    if (!('plugins' in scope))
-                        scope.plugins = plugins
-                    let template:?Function = null
-                    if (path.extname(file.path) === '.js')
-                        template = eval('require')(file.path)
-                    else
+                    const currentOptions:PlainObject = Tools.extendObject({
+                    }, options, {filename: path.relative(
+                        currentScope.basePath, file.path)})
+                    if (!('options' in currentScope))
+                        currentScope.options = currentOptions
+                    if (!('plugins' in currentScope))
+                        currentScope.plugins = plugins
+                    const result:string = Template.renderFactory(
+                        configuration, currentScope, currentOptions
+                    )(file.path)
+                    if (result)
                         try {
-                            template = ejs.compile(content, options)
+                            fileSystem.writeFile(newFilePath, result, {
+                                encoding: configuration.encoding,
+                                flag: 'w', mode: 0o666
+                            }, (error:?Error):void => (error) ? reject(
+                                error
+                            ) : resolve(newFilePath))
                         } catch (error) {
-                            console.error(
-                                `Error occurred during compiling template "` +
-                                `${options.filename}": ` +
-                                Tools.representObject(error))
                             reject(error)
                         }
-                    if (template) {
-                        let result:?string = null
-                        try {
-                            result = template(scope)
-                        } catch (error) {
-                            let scopeDescription:string = ''
-                            try {
-                                scopeDescription = Tools.representObject(scope)
-                                scopeDescription =
-                                    `scope ${scopeDescription} against `
-                            } catch (error) {}
-                            console.error(
-                                'Error occurred during running ' +
-                                `${scopeDescription}template "` +
-                                `${templateFilePath}": ` +
-                                Tools.representObject(error))
-                            reject(error)
-                        }
-                        if (result)
-                            try {
-                                fileSystem.writeFile(newFilePath, result, {
-                                    encoding: configuration.encoding,
-                                    flag: 'w', mode: 0o666
-                                }, (error:?Error):void => (error) ? reject(
-                                    error
-                                ) : resolve(newFilePath))
-                            } catch (error) {
-                                reject(error)
-                            }
-                    }
                 }
             })))
         await Promise.all(templateRenderingPromises)
         return await WebNodePluginAPI.callStack(
             'postTemplateRender', plugins, configuration, scope, templateFiles)
+    }
+    // TODO test
+    /**
+     * Generates a render function with given base scope to resolve includes.
+     * @param configuration - Configuration object.
+     * @param scope - Base scope to extend from.
+     * @returns Render function.
+     */
+    static renderFactory(
+        configuration:Configuration, scope:Object = {}, options:Object = {}
+    ):Function {
+        if (!scope.basePath)
+            scope.basePath = configuration.context.path
+        return (filePath:string, nestedLocals:Object = {}):string => {
+            let nestedOptions:Object = Tools.copyLimitedRecursively(options)
+            delete nestedOptions.client
+            nestedOptions = Tools.extendObject(
+                true, {encoding: 'utf-8'}, nestedOptions,
+                nestedLocals.options || {})
+            const nestedScope:Object = Tools.extendObject({}, scope)
+            filePath = path.resolve(scope.basePath, filePath)
+            nestedOptions.filename = path.relative(scope.basePath, filePath)
+            nestedScope.basePath = path.dirname(filePath)
+            nestedScope.include = Template.renderFactory(
+                configuration, nestedScope, nestedOptions)
+            nestedScope.scope = nestedScope
+            Tools.extendObject(nestedScope, nestedLocals)
+            let currentFilePath:?string = null
+            for (const extension:string of [''].concat(
+                configuration.template.extensions
+            ))
+                if (Tools.isFileSync(filePath + extension)) {
+                    currentFilePath = filePath + extension
+                    break
+                }
+            if (currentFilePath) {
+                let templateFunction:Function
+                if (path.extname(currentFilePath) === '.js')
+                    try {
+                        templateFunction = eval('require')(currentFilePath)
+                    } catch (error) {
+                        throw new Error(
+                            'Error occurred during loading script module: "' +
+                            `${currentFilePath}": ` + Tools.representObject(
+                                error))
+                    }
+                else {
+                    let template:string
+                    try {
+                        // IgnoreTypeCheck
+                        template = fileSystem.readFileSync(currentFilePath, {
+                            encoding: nestedOptions.encoding})
+                    } catch (error) {
+                        throw new Error(
+                            'Error occurred during loading template file "' +
+                            `${currentFilePath}" from file system: ` +
+                            Tools.representObject(error))
+                    }
+                    try {
+                        templateFunction = ejs.compile(template, nestedOptions)
+                    } catch (error) {
+                        throw new Error(
+                            'Error occurred during compiling template file "' +
+                            `${currentFilePath}" with base path "` +
+                            `${nestedScope.basePath}": ` +
+                            Tools.representObject(error))
+                    }
+                }
+                try {
+                    return templateFunction(nestedScope)
+                } catch (error) {
+                    let scopeDescription:string = ''
+                    try {
+                        scopeDescription = 'scope ' + Tools.representObject(
+                            nestedScope
+                        ) + ' against'
+                    } catch (error) {}
+                    throw new Error(
+                        'Error occurred during running template ' +
+                        `${scopeDescription}file "${currentFilePath}": ` +
+                        Tools.representObject(error))
+                }
+            }
+            throw new Error(
+                `Given template file "${nestedOptions.filename}" couldn't be` +
+                ' resolved (with known extensions: "' +
+                `${configuration.template.extensions.join('", "')}") in "` +
+                `${scope.basePath}".`)
+        }
     }
     // endregion
 }
