@@ -15,6 +15,7 @@
     endregion
 */
 // region imports
+import type {PlainObject} from 'clientnode'
 import Tools from 'clientnode'
 import fileSystem from 'fs'
 import path from 'path'
