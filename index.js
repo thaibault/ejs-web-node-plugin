@@ -152,8 +152,13 @@ export default class Template {
                             )))
                                 return false
             })).filter((file:File):boolean => file.stat.isFile(
-            ) && configuration.template.extensions.includes(path.extname(
-                file.path)))
+            ) && configuration.template.extensions.filter((
+                extension:string
+            /*
+                NOTE: We can't use "path.extname()" here since double
+                extensions like ".html.js" should be supported.
+            */
+            ):boolean => file.name.endsWith(extension)).length > 0)
     }
     /**
      * Triggers template rendering.
