@@ -162,7 +162,7 @@ export default class Template {
     }
     /**
      * Triggers template rendering.
-     * @param scope - Scope to use for rendering templates.
+     * @param givenScope - Scope to use for rendering templates.
      * @param configuration - Configuration object.
      * @param plugins - List of all loaded plugins.
      * @returns Scope uses for template rendering.
@@ -176,6 +176,7 @@ export default class Template {
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name))
+                    // IgnoreTypeCheck
                     scope[name] = (new Function(
                         'configuration', 'currentPath', 'fileSystem', 'parser',
                         'path', 'PluginAPI', 'plugins', 'require', 'scope',
@@ -198,38 +199,32 @@ export default class Template {
         for (const file:File of templateFiles)
             templateRenderingPromises.push(new Promise((
                 resolve:Function, reject:Function
-            ):void => fileSystem.readFile(file.path, {
-                encoding: configuration.encoding
-            }, (error:?Error, content:string):void => {
-                if (error)
-                    reject(error)
-                else {
-                    const currentScope:Object = Tools.extendObject({}, scope)
-                    const newFilePath:string = file.path.substring(
-                        0, file.path.length - path.extname(file.path).length)
-                    const currentOptions:PlainObject = Tools.extendObject({
-                    }, options, {filename: path.relative(
-                        currentScope.basePath, file.path)})
-                    if (!('options' in currentScope))
-                        currentScope.options = currentOptions
-                    if (!('plugins' in currentScope))
-                        currentScope.plugins = plugins
-                    const result:string = Template.renderFactory(
-                        configuration, currentScope, currentOptions
-                    )(file.path)
-                    if (result)
-                        try {
-                            fileSystem.writeFile(newFilePath, result, {
-                                encoding: configuration.encoding,
-                                flag: 'w', mode: 0o666
-                            }, (error:?Error):void => (error) ? reject(
-                                error
-                            ) : resolve(newFilePath))
-                        } catch (error) {
-                            reject(error)
-                        }
-                }
-            })))
+            ):void => {
+                const currentScope:Object = Tools.extendObject({}, scope)
+                const newFilePath:string = file.path.substring(
+                    0, file.path.length - path.extname(file.path).length)
+                const currentOptions:PlainObject = Tools.extendObject({
+                }, options, {filename: path.relative(
+                    currentScope.basePath, file.path)})
+                if (!('options' in currentScope))
+                    currentScope.options = currentOptions
+                if (!('plugins' in currentScope))
+                    currentScope.plugins = plugins
+                const result:string = Template.renderFactory(
+                    configuration, currentScope, currentOptions
+                )(file.path)
+                if (result)
+                    try {
+                        fileSystem.writeFile(newFilePath, result, {
+                            encoding: configuration.encoding,
+                            flag: 'w', mode: 0o666
+                        }, (error:?Error):void => (error) ? reject(
+                            error
+                        ) : resolve(newFilePath))
+                    } catch (error) {
+                        reject(error)
+                    }
+            }))
         await Promise.all(templateRenderingPromises)
         return await WebNodePluginAPI.callStack(
             'postTemplateRender', plugins, configuration, scope, templateFiles)
@@ -238,6 +233,7 @@ export default class Template {
      * Generates a render function with given base scope to resolve includes.
      * @param configuration - Configuration object.
      * @param scope - Base scope to extend from.
+     * @param options - Render options to use.
      * @returns Render function.
      */
     static renderFactory(

@@ -42,10 +42,9 @@ registerTest(async function():Promise<void> {
         assert:Object
     ):Promise<void> => {
         const done:Function = assert.async()
-        let result:any
         configuration.template.renderAfterConfigurationUpdates = false
         try {
-            result = await Index.postConfigurationLoaded(
+            await Index.postConfigurationLoaded(
                 configuration, [], configuration, [])
         } catch (error) {
             console.error(error)
