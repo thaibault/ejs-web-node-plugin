@@ -164,7 +164,7 @@ static async shouldExit(
      * @param givenScope - Scope to use for rendering templates.
      * @param configuration - Configuration object.
      * @param plugins - List of all loaded plugins.
-     * @returns Scope uses for template rendering.
+     * @returns A promise resolving to scope used for template rendering.
      */
     static async render(
         givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
