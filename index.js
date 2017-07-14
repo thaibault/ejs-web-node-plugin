@@ -124,11 +124,15 @@ export default class Template {
                     aren't loaded.
                 */
                 for (const type:string in configuration.plugin.directories)
-                    if (configuration.plugin.directories.hasOwnProperty(
-                        type
-                    ) && path.dirname(file.path) === path.resolve(
-                        configuration.plugin.directories[type].path
-                    ) && !pluginPaths.includes(file.path))
+                    if (
+                        configuration.plugin.directories.hasOwnProperty(
+                            type
+                        ) &&
+                        path.dirname(file.path) === path.resolve(
+                            configuration.plugin.directories[type].path
+                        ) &&
+                        !pluginPaths.includes(file.path)
+                    )
                         return false
                 /*
                     NOTE: We ignore absolute defined locations and relative
@@ -151,13 +155,13 @@ export default class Template {
                                 return false
             })
         ).filter((file:File):boolean => file.stat.isFile(
-        ) && configuration.template.extensions.filter((
-            extension:string
-        /*
-            NOTE: We can't use "path.extname()" here since double
-            extensions like ".html.js" should be supported.
-        */
-        ):boolean => file.name.endsWith(extension)).length > 0)
+        ) &&
+        configuration.template.extensions.filter((extension:string):boolean =>
+            /*
+                NOTE: We can't use "path.extname()" here since double
+                extensions like ".html.js" should be supported.
+            */
+            file.name.endsWith(extension)).length > 0)
     }
     /**
      * Triggers template rendering.
@@ -181,8 +185,10 @@ export default class Template {
                         'path', 'PluginAPI', 'plugins', 'require', 'scope',
                         'template', 'Tools', 'webNodePath',
                         type === 'evaluation' ?
-                        `return ${configuration.template.scope[type][name]}` :
-                        configuration.template.scope[type][name]
+                            'return ' +
+                            configuration.template.scope[type][name]
+                            :
+                            configuration.template.scope[type][name]
                     ))(
                         Tools.copyLimitedRecursively(configuration, -1, true),
                         process.cwd(), fileSystem, ejs, path, PluginAPI,
