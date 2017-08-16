@@ -210,11 +210,12 @@ export default class Template {
                     0, file.path.length - path.extname(file.path).length)
                 if (configuration.template.cache && await Tools.isFile(
                     newFilePath
-                ))
+                )) {
                     console.info(
                         `Template: Use cached file ("${newFilePath}") for "` +
                         `${file.path}".`)
-                else {
+                    resolve(newFilePath)
+                } else {
                     const currentOptions:PlainObject = Tools.extendObject({
                     }, options, {filename: path.relative(
                         currentScope.basePath, file.path)})
