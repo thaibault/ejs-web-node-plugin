@@ -62,6 +62,7 @@
   },
   "webNode": {
     "template": {
+      "cache": false,
       "extensions": [
         ".html.js",
         ".ejs"
