@@ -202,33 +202,42 @@ export default class Template {
             await Template.getFiles(configuration, plugins), scope)
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const file:File of templateFiles)
-            templateRenderingPromises.push(new Promise((
+            templateRenderingPromises.push(new Promise(async (
                 resolve:Function, reject:Function
-            ):void => {
+            ):Promise<void> => {
                 const currentScope:Object = Tools.extendObject({}, scope)
                 const newFilePath:string = file.path.substring(
                     0, file.path.length - path.extname(file.path).length)
-                const currentOptions:PlainObject = Tools.extendObject({
-                }, options, {filename: path.relative(
-                    currentScope.basePath, file.path)})
-                if (!('options' in currentScope))
-                    currentScope.options = currentOptions
-                if (!('plugins' in currentScope))
-                    currentScope.plugins = plugins
-                const result:string = Template.renderFactory(
-                    configuration, currentScope, currentOptions
-                )(file.path)
-                if (result)
-                    try {
-                        fileSystem.writeFile(newFilePath, result, {
-                            encoding: configuration.encoding,
-                            flag: 'w', mode: 0o666
-                        }, (error:?Error):void => (error) ? reject(
-                            error
-                        ) : resolve(newFilePath))
-                    } catch (error) {
-                        reject(error)
-                    }
+                if (configuration.template.cache && await Tools.isFile(
+                    newFilePath
+                ))
+                    console.info(
+                        `Template: Use cached file ("${newFilePath}") for "` +
+                        `${file.path}".`)
+                else {
+                    const currentOptions:PlainObject = Tools.extendObject({
+                    }, options, {filename: path.relative(
+                        currentScope.basePath, file.path)})
+                    if (!('options' in currentScope))
+                        currentScope.options = currentOptions
+                    if (!('plugins' in currentScope))
+                        currentScope.plugins = plugins
+                    const result:string = Template.renderFactory(
+                        configuration, currentScope, currentOptions
+                    )(file.path)
+                    if (result)
+                        try {
+                            fileSystem.writeFile(newFilePath, result, {
+                                encoding: configuration.encoding,
+                                flag: 'w',
+                                mode: 0o666
+                            }, (error:?Error):void => (error) ? reject(
+                                error
+                            ) : resolve(newFilePath))
+                        } catch (error) {
+                            reject(error)
+                        }
+                }
             }))
         await Promise.all(templateRenderingPromises)
         return await PluginAPI.callStack(
