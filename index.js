@@ -52,7 +52,8 @@ export default class Template {
     static async postConfigurationLoaded(
         configuration:Configuration,
         pluginsWithChangedConfiguration:Array<Plugin>,
-        oldConfiguration:Configuration, plugins:Array<Plugin>
+        oldConfiguration:Configuration,
+        plugins:Array<Plugin>
     ):Promise<Configuration> {
         if (configuration.template.renderAfterConfigurationUpdates)
             Template.render(null, configuration, plugins)
@@ -283,6 +284,8 @@ export default class Template {
     ):Function {
         if (!scope.basePath)
             scope.basePath = configuration.context.path
+        if (!options.preCompiledTemplateFileExtensions)
+            options.preCompiledTemplateFileExtensions = ['.js']
         return (filePath:string, nestedLocals:Object = {}):string => {
             let nestedOptions:Object = Tools.copyLimitedRecursively(options)
             delete nestedOptions.client
@@ -310,10 +313,15 @@ export default class Template {
                 if (
                     configuration.template.reloadSourceContent &&
                     !configuration.template.inPlaceReplacementPaths.includes(
-                        filePath) ||
-                    !Template.files.hasOwnProperty(currentFilePath)
+                        filePath
+                    ) || !(
+                        Template.files.hasOwnProperty(currentFilePath) &&
+                        Template.files[currentFilePath])
                 )
-                    if (path.extname(currentFilePath) === '.js')
+                    if (
+                        nestedOptions.preCompiledTemplateFileExtensions
+                            .includes(path.extname(currentFilePath))
+                    )
                         try {
                             Template.files[currentFilePath] = eval('require')(
                                 currentFilePath)
