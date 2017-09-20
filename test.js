@@ -58,9 +58,10 @@ registerTest(async function():Promise<void> {
         const done:Function = assert.async()
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
+        Index.files = {[`${targetFilePath}.tpl`]: null}
         try {
             assert.ok(await Tools.isFile(targetFilePath))
-            await Index.shouldExit({}, configuration, [])
+            await Index.shouldExit({}, configuration)
         } catch (error) {
             console.error(error)
         }
@@ -72,9 +73,9 @@ registerTest(async function():Promise<void> {
     this.test('getFiles', async (assert:Object):Promise<void> => {
         const done:Function = assert.async()
         try {
-            assert.strictEqual(path.basename((await Index.getFiles(
+            assert.strictEqual(path.basename(Object.keys(await Index.getFiles(
                 configuration, []
-            ))[0].path), 'dummy.txt.ejs')
+            ))[0]), 'dummy.txt.ejs')
         } catch (error) {
             console.error(error)
         }

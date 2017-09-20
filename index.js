@@ -31,10 +31,13 @@ import PluginAPI from 'web-node/pluginAPI'
 import type {Configuration, Plugin, Services} from 'web-node/type'
 // endregion
 /**
- * Renders all templates again configuration object and rerenders them after
+ * Renders all templates again configuration object and re-renders them after
  * configurations changes.
+ * @property static:files - Mapping from determined file paths to there
+ * compiled template function.
  */
 export default class Template {
+    static files:{[key:string]:?Function}
     // region api
     /**
      * Triggered hook when at least one plugin has a new configuration file and
@@ -71,34 +74,36 @@ export default class Template {
      * Triggers when application will be closed soon and removes created files.
      * @param services - An object with stored service instances.
      * @param configuration - Updated configuration object.
-     * @param plugins - List of all loaded plugins.
      * @returns Given object of services.
      */
     static async shouldExit(
-        services:Services, configuration:Configuration, plugins:Array<Plugin>
+        services:Services, configuration:Configuration
     ):Promise<Services> {
         const templateOutputRemoveingPromises:Array<Promise<string>> = []
-        for (const file:File of await Template.getFiles(
-            configuration, plugins
-        ))
-            templateOutputRemoveingPromises.push(new Promise(async (
-                resolve:Function, reject:Function
-            ):Promise<void> => {
-                const newFilePath:string = file.path.substring(
-                    0, file.path.length - path.extname(file.path).length)
-                let newFileExists:boolean = false
-                try {
-                    newFileExists = await Tools.isFile(newFilePath)
-                } catch (error) {
-                    reject(error)
-                }
-                if (newFileExists)
-                    fileSystem.unlink(newFilePath, (error:?Error):void => (
-                        error
-                    ) ? reject(error) : resolve(newFilePath))
-                else
-                    resolve(newFileExists)
-            }))
+        for (const filePath:string in Template.files)
+            if (
+                Template.files.hasOwnProperty(filePath) &&
+                !configuration.template.inPlaceReplacementPaths.includes(
+                    filePath)
+            )
+                templateOutputRemoveingPromises.push(new Promise(async (
+                    resolve:Function, reject:Function
+                ):Promise<void> => {
+                    const newFilePath:string = filePath.substring(
+                        0, filePath.length - path.extname(filePath).length)
+                    let newFileExists:boolean = false
+                    try {
+                        newFileExists = await Tools.isFile(newFilePath)
+                    } catch (error) {
+                        reject(error)
+                    }
+                    if (newFileExists)
+                        fileSystem.unlink(newFilePath, (error:?Error):void => (
+                            error
+                        ) ? reject(error) : resolve(newFilePath))
+                    else
+                        resolve(newFileExists)
+                }))
         await Promise.all(templateOutputRemoveingPromises)
         return services
     }
@@ -112,10 +117,13 @@ export default class Template {
      */
     static async getFiles(
         configuration:Configuration, plugins:Array<Plugin>
-    ):Promise<Array<File>> {
+    ):Promise<{[key:string]:?Function}> {
         const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
             plugin.path)
-        return (await Tools.walkDirectoryRecursively(
+        if (Template.files && !configuration.template.reloadFiles)
+            return Template.files
+        Template.files = {}
+        for (const file:File of (await Tools.walkDirectoryRecursively(
             configuration.context.path, (file:File):?false => {
                 if (file.name.startsWith('.'))
                     return false
@@ -161,7 +169,15 @@ export default class Template {
                 NOTE: We can't use "path.extname()" here since double
                 extensions like ".html.js" should be supported.
             */
-            file.name.endsWith(extension)).length > 0)
+            file.name.endsWith(extension)).length > 0
+        ))
+            Template.files[file.path] = null
+        for (
+            const filePath:string of
+            configuration.template.inPlaceReplacementPaths
+        )
+            Template.files[filePath] = null
+        return Template.files
     }
     /**
      * Triggers template rendering.
@@ -197,52 +213,63 @@ export default class Template {
         const options:PlainObject = Tools.copyLimitedRecursively(
             configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
-        const templateFiles:Array<File> = await PluginAPI.callStack(
+        await PluginAPI.callStack(
             'preTemplateRender', plugins, configuration,
             await Template.getFiles(configuration, plugins), scope)
         const templateRenderingPromises:Array<Promise<string>> = []
-        for (const file:File of templateFiles)
-            templateRenderingPromises.push(new Promise(async (
-                resolve:Function, reject:Function
-            ):Promise<void> => {
-                const currentScope:Object = Tools.extendObject({}, scope)
-                const newFilePath:string = file.path.substring(
-                    0, file.path.length - path.extname(file.path).length)
-                if (configuration.template.cache && await Tools.isFile(
-                    newFilePath
-                )) {
-                    console.info(
-                        `Template: Use cached file ("${newFilePath}") for "` +
-                        `${file.path}".`)
-                    resolve(newFilePath)
-                } else {
-                    const currentOptions:PlainObject = Tools.extendObject({
-                    }, options, {filename: path.relative(
-                        currentScope.basePath, file.path)})
-                    if (!('options' in currentScope))
-                        currentScope.options = currentOptions
-                    if (!('plugins' in currentScope))
-                        currentScope.plugins = plugins
-                    const result:string = Template.renderFactory(
-                        configuration, currentScope, currentOptions
-                    )(file.path)
-                    if (result)
-                        try {
-                            fileSystem.writeFile(newFilePath, result, {
-                                encoding: configuration.encoding,
-                                flag: 'w',
-                                mode: 0o666
-                            }, (error:?Error):void => (error) ? reject(
-                                error
-                            ) : resolve(newFilePath))
-                        } catch (error) {
-                            reject(error)
-                        }
-                }
-            }))
+        for (const filePath:string in Template.files)
+            if (Template.files.hasOwnProperty(filePath))
+                templateRenderingPromises.push(new Promise(async (
+                    resolve:Function, reject:Function
+                ):Promise<void> => {
+                    const currentScope:Object = Tools.extendObject({}, scope)
+                    const inPlace:boolean =
+                        configuration.template.inPlaceReplacementPaths
+                            .includes(filePath)
+                    const newFilePath:string = inPlace ? filePath :
+                        filePath.substring(
+                            0, filePath.length - path.extname(filePath).length)
+                    if (
+                        inPlace &&
+                        configuration.template.cacheInPlaceReplacements &&
+                        Template.files[filePath] ||
+                        !inPlace &&
+                        configuration.template.cache &&
+                        await Tools.isFile(newFilePath)
+                    ) {
+                        console.info(
+                            `Template: Use cached file ("${newFilePath}") ` +
+                            `for "${filePath}".`)
+                        resolve(newFilePath)
+                    } else {
+                        const currentOptions:PlainObject = Tools.extendObject({
+                        }, options, {filename: path.relative(
+                            currentScope.basePath, filePath)})
+                        if (!('options' in currentScope))
+                            currentScope.options = currentOptions
+                        if (!('plugins' in currentScope))
+                            currentScope.plugins = plugins
+                        const result:string = Template.renderFactory(
+                            configuration, currentScope, currentOptions
+                        )(filePath)
+                        if (result)
+                            try {
+                                fileSystem.writeFile(newFilePath, result, {
+                                    encoding: configuration.encoding,
+                                    flag: 'w',
+                                    mode: 0o666
+                                }, (error:?Error):void => (error) ? reject(
+                                    error
+                                ) : resolve(newFilePath))
+                            } catch (error) {
+                                reject(error)
+                            }
+                    }
+                }))
         await Promise.all(templateRenderingPromises)
         return await PluginAPI.callStack(
-            'postTemplateRender', plugins, configuration, scope, templateFiles)
+            'postTemplateRender', plugins, configuration, scope, Template.files
+        )
     }
     /**
      * Generates a render function with given base scope to resolve includes.
@@ -268,6 +295,7 @@ export default class Template {
             nestedScope.basePath = path.dirname(filePath)
             nestedScope.include = Template.renderFactory(
                 configuration, nestedScope, nestedOptions)
+            nestedScope.options = nestedOptions
             nestedScope.scope = nestedScope
             Tools.extendObject(nestedScope, nestedLocals)
             let currentFilePath:?string = null
@@ -279,40 +307,49 @@ export default class Template {
                     break
                 }
             if (currentFilePath) {
-                let templateFunction:Function
-                if (path.extname(currentFilePath) === '.js')
-                    try {
-                        templateFunction = eval('require')(currentFilePath)
-                    } catch (error) {
-                        throw new Error(
-                            'Error occurred during loading script module: "' +
-                            `${currentFilePath}": ` + Tools.representObject(
-                                error))
+                if (
+                    configuration.template.reloadSourceContent &&
+                    !configuration.template.inPlaceReplacementPaths.includes(
+                        filePath) ||
+                    !Template.files.hasOwnProperty(currentFilePath)
+                )
+                    if (path.extname(currentFilePath) === '.js')
+                        try {
+                            Template.files[currentFilePath] = eval('require')(
+                                currentFilePath)
+                        } catch (error) {
+                            throw new Error(
+                                'Error occurred during loading script module' +
+                                `: "${currentFilePath}": ` +
+                                Tools.representObject(error))
+                        }
+                    else {
+                        let template:string
+                        try {
+                            // IgnoreTypeCheck
+                            template = fileSystem.readFileSync(
+                                currentFilePath, {
+                                    encoding: nestedOptions.encoding})
+                        } catch (error) {
+                            throw new Error(
+                                'Error occurred during loading template ' +
+                                `file "${currentFilePath}" from file system:` +
+                                ` ${Tools.representObject(error)}`)
+                        }
+                        try {
+                            Template.files[currentFilePath] = ejs.compile(
+                                template, nestedOptions)
+                        } catch (error) {
+                            throw new Error(
+                                'Error occurred during compiling template ' +
+                                `file "${currentFilePath}" with base path "` +
+                                `${nestedScope.basePath}": ` +
+                                Tools.representObject(error))
+                        }
                     }
-                else {
-                    let template:string
-                    try {
-                        // IgnoreTypeCheck
-                        template = fileSystem.readFileSync(currentFilePath, {
-                            encoding: nestedOptions.encoding})
-                    } catch (error) {
-                        throw new Error(
-                            'Error occurred during loading template file "' +
-                            `${currentFilePath}" from file system: ` +
-                            Tools.representObject(error))
-                    }
-                    try {
-                        templateFunction = ejs.compile(template, nestedOptions)
-                    } catch (error) {
-                        throw new Error(
-                            'Error occurred during compiling template file "' +
-                            `${currentFilePath}" with base path "` +
-                            `${nestedScope.basePath}": ` +
-                            Tools.representObject(error))
-                    }
-                }
                 try {
-                    return templateFunction(nestedScope)
+                    // IgnoreTypeCheck
+                    return Template.files[currentFilePath](nestedScope)
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {

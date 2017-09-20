@@ -63,10 +63,12 @@
   "webNode": {
     "template": {
       "cache": false,
+      "cacheInPlaceReplacements": false,
       "extensions": [
         ".html.js",
         ".ejs"
       ],
+      "inPlaceReplacementPaths": [],
       "locationsToIgnore": [
         "backup",
         "database",
@@ -84,6 +86,8 @@
         }
       },
       "renderAfterConfigurationUpdates": false,
+      "reloadFiles": true,
+      "reloadSourceContent": true,
       "scope": {
         "evaluation": {
           "configuration": "configuration",
