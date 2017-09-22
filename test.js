@@ -58,7 +58,8 @@ registerTest(async function():Promise<void> {
         const done:Function = assert.async()
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
-        Index.files = {[`${targetFilePath}.tpl`]: null}
+        Index.entryFiles = {[`${targetFilePath}.tpl`]: null}
+        Index.files = Tools.copyLimitedRecursively(Index.entryFiles)
         try {
             assert.ok(await Tools.isFile(targetFilePath))
             await Index.shouldExit({}, configuration)
@@ -70,12 +71,12 @@ registerTest(async function():Promise<void> {
     })
     // / endregion
     // / region helper
-    this.test('getFiles', async (assert:Object):Promise<void> => {
+    this.test('getEntryFiles', async (assert:Object):Promise<void> => {
         const done:Function = assert.async()
         try {
-            assert.strictEqual(path.basename(Object.keys(await Index.getFiles(
-                configuration, []
-            ))[0]), 'dummy.txt.ejs')
+            assert.strictEqual(path.basename(Object.keys(
+                await Index.getEntryFiles(configuration, [])
+            )[0]), 'dummy.txt.ejs')
         } catch (error) {
             console.error(error)
         }

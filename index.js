@@ -33,11 +33,14 @@ import type {Configuration, Plugin, Services} from 'web-node/type'
 /**
  * Renders all templates again configuration object and re-renders them after
  * configurations changes.
+ * @property static:entryFiles - Mapping from auto determined file paths to
+ * there compiled template function.
  * @property static:files - Mapping from determined file paths to there
  * compiled template function.
  */
 export default class Template {
-    static files:{[key:string]:?Function}
+    static entryFiles:{[key:string]:?Function}
+    static files:{[key:string]:?Function} = {}
     // region api
     /**
      * Triggered hook when at least one plugin has a new configuration file and
@@ -116,14 +119,14 @@ export default class Template {
      * @param plugins - List of all loaded plugins.
      * @returns A promise holding all resolved files.
      */
-    static async getFiles(
+    static async getEntryFiles(
         configuration:Configuration, plugins:Array<Plugin>
     ):Promise<{[key:string]:?Function}> {
+        if (Template.entryFiles && !configuration.template.reloadEntryFiles)
+            return Template.entryFiles
         const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
             plugin.path)
-        if (Template.files && !configuration.template.reloadFiles)
-            return Template.files
-        Template.files = {}
+        Template.entryFiles = {}
         for (const file:File of (await Tools.walkDirectoryRecursively(
             configuration.context.path, (file:File):?false => {
                 if (file.name.startsWith('.'))
@@ -172,13 +175,16 @@ export default class Template {
             */
             file.name.endsWith(extension)).length > 0
         ))
-            Template.files[file.path] = null
+            Template.entryFiles[file.path] = null
         for (
             const filePath:string of
             configuration.template.inPlaceReplacementPaths
         )
-            Template.files[filePath] = null
-        return Template.files
+            Template.entryFiles[filePath] = null
+        for (const filePath:string in Template.entryFiles)
+            if (Template.entryFiles.hasOwnProperty(filePath))
+                Template.files[filePath] = Template.entryFiles[filePath]
+        return Template.entryFiles
     }
     /**
      * Triggers template rendering.
@@ -214,12 +220,12 @@ export default class Template {
         const options:PlainObject = Tools.copyLimitedRecursively(
             configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
-        await PluginAPI.callStack(
+        Template.entryFiles = await PluginAPI.callStack(
             'preTemplateRender', plugins, configuration,
-            await Template.getFiles(configuration, plugins), scope)
+            await Template.getEntryFiles(configuration, plugins), scope)
         const templateRenderingPromises:Array<Promise<string>> = []
-        for (const filePath:string in Template.files)
-            if (Template.files.hasOwnProperty(filePath))
+        for (const filePath:string in Template.entryFiles)
+            if (Template.entryFiles.hasOwnProperty(filePath))
                 templateRenderingPromises.push(new Promise(async (
                     resolve:Function, reject:Function
                 ):Promise<void> => {
@@ -233,7 +239,7 @@ export default class Template {
                     if (
                         inPlace &&
                         configuration.template.cacheInPlaceReplacements &&
-                        Template.files[filePath] ||
+                        Template.entryFiles[filePath] ||
                         !inPlace &&
                         configuration.template.cache &&
                         await Tools.isFile(newFilePath)
@@ -269,7 +275,8 @@ export default class Template {
                 }))
         await Promise.all(templateRenderingPromises)
         return await PluginAPI.callStack(
-            'postTemplateRender', plugins, configuration, scope, Template.files
+            'postTemplateRender', plugins, configuration, scope,
+            Template.entryFiles
         )
     }
     /**

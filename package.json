@@ -86,7 +86,7 @@
         }
       },
       "renderAfterConfigurationUpdates": false,
-      "reloadFiles": true,
+      "reloadEntryFiles": true,
       "reloadSourceContent": true,
       "scope": {
         "evaluation": {
