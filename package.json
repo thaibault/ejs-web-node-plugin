@@ -38,7 +38,7 @@
     "watch:dll": "webOptimizer build:dll --watch"
   },
   "dependencies": {
-    "clientnode": "^1.0.251",
+    "clientnode": "^1.0.268",
     "ejs": "^2.5.6"
   },
   "peerDependencies": {
@@ -46,7 +46,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^8.0.1",
-    "documentation-website": "^1.0.66",
+    "documentation-website": "^1.0.72",
     "eslint": "^4.9.0",
     "eslint-config-google": "^0.9.1",
     "eslint-plugin-flowtype": "^2.36.0",
@@ -56,7 +56,7 @@
     "rimraf": "^2.6.1",
     "source-map-support": "^0.5.0",
     "web-node": "^1.0.121",
-    "weboptimizer": "^1.0.381",
+    "weboptimizer": "^1.0.394",
     "webpack": "^3.8.0",
     "webpack-dev-server": "^2.9.2"
   },
@@ -117,7 +117,7 @@
         "javaScript": {
           "options": {
             "presets": {
-              "__evaluate__": "[['env', {targets: self.targetTechnology === 'node' ? {node: 'current'} : {browsers: 'last 2 versions'}}]].concat('stage-0')"
+              "__evaluate__": "[['env', {targets: self.targetTechnology === 'node' ? {node: 'current'} : {browsers: 'last 2 versions', node: 'current'}}]].concat('stage-0')"
             }
           }
         }
