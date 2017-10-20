@@ -42,6 +42,7 @@
     "ejs": "^2.5.6"
   },
   "peerDependencies": {
+    "babel-runtime": "*",
     "web-node": "*"
   },
   "devDependencies": {
