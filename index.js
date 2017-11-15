@@ -38,7 +38,7 @@ import type {Configuration, Plugin, Services} from 'web-node/type'
  * @property static:files - Mapping from determined file paths to there
  * compiled template function.
  */
-export default class Template {
+export class Template {
     static entryFiles:{[key:string]:?Function}
     static files:{[key:string]:?Function} = {}
     // region api
@@ -387,6 +387,7 @@ export default class Template {
     }
     // endregion
 }
+export default Template
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
 // vim: foldmethod=marker foldmarker=region,endregion:
