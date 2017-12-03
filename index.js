@@ -166,7 +166,7 @@ export class Template {
                             )))
                                 return false
             })
-        ).filter((file:File):boolean => file.stat.isFile(
+        ).filter((file:File):boolean => file.stats.isFile(
         ) &&
         configuration.template.extensions.filter((extension:string):boolean =>
             /*
