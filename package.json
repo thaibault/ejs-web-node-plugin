@@ -38,7 +38,7 @@
     "watch:dll": "webOptimizer build:dll --watch"
   },
   "dependencies": {
-    "clientnode": "^1.0.297",
+    "clientnode": "^1.0.299",
     "ejs": "^2.5.6"
   },
   "peerDependencies": {
@@ -57,8 +57,8 @@
     "qunit": "^2.4.1",
     "rimraf": "^2.6.1",
     "source-map-support": "^0.5.0",
-    "web-node": "^1.0.130",
-    "weboptimizer": "^1.0.432",
+    "web-node": "^1.0.131",
+    "weboptimizer": "^1.0.433",
     "webpack": "^3.9.1",
     "webpack-dev-server": "^2.9.5"
   },
