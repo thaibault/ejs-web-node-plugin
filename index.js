@@ -380,15 +380,15 @@ export class Template {
                 }
                 return result
                     .replace(new RegExp(
-                        '<\/?script +processing-workaround *' +
-                        `(?:= *(?:" *"|' *') *)?>`,
+                        '<script +processing-workaround *' +
+                        `(?:= *(?:" *"|' *') *)?>([\\s\\S]*?)</ *script *>`,
                         'ig'
-                    ), '')
+                    ), '$1')
                     .replace(new RegExp(
-                        '<(\/)?script +processing(-+)-workaround *' +
-                        `(?:= *(?:" *"|' *') *)?>`,
+                        '<script +processing(-+)-workaround *' +
+                        `(?:= *(?:" *"|' *') *)?>([\\s\\S]*?)</ *script *>`,
                         'ig'
-                    ), '<$1script processing$2workaround>')
+                    ), '<script processing$1workaround>$2</script>')
             }
             throw new Error(
                 `Given template file "${nestedOptions.filename}" couldn't be` +
