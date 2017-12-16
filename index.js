@@ -166,7 +166,7 @@ export class Template {
                             )))
                                 return false
             })
-        ).filter((file:File):boolean => !file.error && file.stats.isFile(
+        ).filter((file:File):boolean|null => file.stats && file.stats.isFile(
         ) &&
         configuration.template.extensions.filter((extension:string):boolean =>
             /*
@@ -362,9 +362,10 @@ export class Template {
                                 Tools.representObject(error))
                         }
                     }
+                let result:string = ''
                 try {
                     // IgnoreTypeCheck
-                    return Template.files[currentFilePath](nestedScope)
+                    result = Template.files[currentFilePath](nestedScope)
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {
@@ -377,6 +378,17 @@ export class Template {
                         `${scopeDescription}file "${currentFilePath}": ` +
                         Tools.representObject(error))
                 }
+                return result
+                    .replace(new RegExp(
+                        '<\/?script +processing-workaround *' +
+                        `(?:= *(?:" *"|' *') *)?>`,
+                        'ig'
+                    ), '')
+                    .replace(new RegExp(
+                        '<(\/)?script +processing(-+)-workaround *' +
+                        `(?:= *(?:" *"|' *') *)?>`,
+                        'ig'
+                    ), '<$1script processing$2workaround>')
             }
             throw new Error(
                 `Given template file "${nestedOptions.filename}" couldn't be` +
