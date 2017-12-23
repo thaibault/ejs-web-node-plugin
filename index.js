@@ -280,6 +280,13 @@ export class Template {
                             } catch (error) {
                                 reject(error)
                             }
+                        else {
+                            console.warn(
+                                'An empty template processing result ' +
+                                `detected for file "${newFilePath}" with in ` +
+                                `put file "${filePath}".`)
+                            resolve(newFilePath)
+                        }
                     }
                 }))
         await Promise.all(templateRenderingPromises)
