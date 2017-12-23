@@ -274,12 +274,19 @@ export class Template {
                                     encoding: configuration.encoding,
                                     flag: 'w',
                                     mode: 0o666
-                                }, (error:?Error):void => (error) ? reject(
+                                }, (error:?Error):void => error ? reject(
                                     error
                                 ) : resolve(newFilePath))
                             } catch (error) {
                                 reject(error)
                             }
+                        else {
+                            console.warn(
+                                'An empty template processing result ' +
+                                `detected for file "${newFilePath}" with in ` +
+                                `put file "${filePath}".`)
+                            resolve(newFilePath)
+                        }
                     }
                 }))
         await Promise.all(templateRenderingPromises)
