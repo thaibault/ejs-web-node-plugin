@@ -274,7 +274,7 @@ export class Template {
                                     encoding: configuration.encoding,
                                     flag: 'w',
                                     mode: 0o666
-                                }, (error:?Error):void => (error) ? reject(
+                                }, (error:?Error):void => error ? reject(
                                     error
                                 ) : resolve(newFilePath))
                             } catch (error) {
