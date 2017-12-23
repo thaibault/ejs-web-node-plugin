@@ -201,22 +201,31 @@ export class Template {
         }, configuration.template.scope.plain, givenScope || {})
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
-                if (configuration.template.scope[type].hasOwnProperty(name))
+                if (configuration.template.scope[type].hasOwnProperty(name)) {
+                    const currentScope:PlainObject = {
+                        configuration: Tools.copyLimitedRecursively(
+                            configuration, -1, true),
+                        currentPath: process.cwd(),
+                        fileSystem,
+                        parser: ejs,
+                        path,
+                        PluginAPI,
+                        plugins,
+                        require: eval('require'),
+                        scope,
+                        template: Template,
+                        Tools,
+                        webNodePath: __dirname
+                    }
                     // IgnoreTypeCheck
                     scope[name] = (new Function(
-                        'configuration', 'currentPath', 'fileSystem', 'parser',
-                        'path', 'PluginAPI', 'plugins', 'require', 'scope',
-                        'template', 'Tools', 'webNodePath',
-                        type === 'evaluation' ?
+                        ...Object.keys(currentScope), type === 'evaluation' ?
                             'return ' +
                             configuration.template.scope[type][name]
                             :
                             configuration.template.scope[type][name]
-                    ))(
-                        Tools.copyLimitedRecursively(configuration, -1, true),
-                        process.cwd(), fileSystem, ejs, path, PluginAPI,
-                        plugins, eval('require'), scope, Template, Tools,
-                        __dirname)
+                    ))(...Object.values(currentScope))
+                }
         const options:PlainObject = Tools.copyLimitedRecursively(
             configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
