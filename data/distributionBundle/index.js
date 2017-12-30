@@ -166,7 +166,7 @@ export class Template {
                             )))
                                 return false
             })
-        ).filter((file:File):boolean => !file.error && file.stats.isFile(
+        ).filter((file:File):boolean|null => file.stats && file.stats.isFile(
         ) &&
         configuration.template.extensions.filter((extension:string):boolean =>
             /*
@@ -201,22 +201,31 @@ export class Template {
         }, configuration.template.scope.plain, givenScope || {})
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
-                if (configuration.template.scope[type].hasOwnProperty(name))
+                if (configuration.template.scope[type].hasOwnProperty(name)) {
+                    const currentScope:PlainObject = {
+                        configuration: Tools.copyLimitedRecursively(
+                            configuration, -1, true),
+                        currentPath: process.cwd(),
+                        fileSystem,
+                        parser: ejs,
+                        path,
+                        PluginAPI,
+                        plugins,
+                        require: eval('require'),
+                        scope,
+                        template: Template,
+                        Tools,
+                        webNodePath: __dirname
+                    }
                     // IgnoreTypeCheck
                     scope[name] = (new Function(
-                        'configuration', 'currentPath', 'fileSystem', 'parser',
-                        'path', 'PluginAPI', 'plugins', 'require', 'scope',
-                        'template', 'Tools', 'webNodePath',
-                        type === 'evaluation' ?
+                        ...Object.keys(currentScope), type === 'evaluation' ?
                             'return ' +
                             configuration.template.scope[type][name]
                             :
                             configuration.template.scope[type][name]
-                    ))(
-                        Tools.copyLimitedRecursively(configuration, -1, true),
-                        process.cwd(), fileSystem, ejs, path, PluginAPI,
-                        plugins, eval('require'), scope, Template, Tools,
-                        __dirname)
+                    ))(...Object.values(currentScope))
+                }
         const options:PlainObject = Tools.copyLimitedRecursively(
             configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
@@ -265,12 +274,19 @@ export class Template {
                                     encoding: configuration.encoding,
                                     flag: 'w',
                                     mode: 0o666
-                                }, (error:?Error):void => (error) ? reject(
+                                }, (error:?Error):void => error ? reject(
                                     error
                                 ) : resolve(newFilePath))
                             } catch (error) {
                                 reject(error)
                             }
+                        else {
+                            console.warn(
+                                'An empty template processing result ' +
+                                `detected for file "${newFilePath}" with in ` +
+                                `put file "${filePath}".`)
+                            resolve(newFilePath)
+                        }
                     }
                 }))
         await Promise.all(templateRenderingPromises)
@@ -362,9 +378,10 @@ export class Template {
                                 Tools.representObject(error))
                         }
                     }
+                let result:string = ''
                 try {
                     // IgnoreTypeCheck
-                    return Template.files[currentFilePath](nestedScope)
+                    result = Template.files[currentFilePath](nestedScope)
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {
@@ -377,6 +394,17 @@ export class Template {
                         `${scopeDescription}file "${currentFilePath}": ` +
                         Tools.representObject(error))
                 }
+                return result
+                    .replace(new RegExp(
+                        '<script +processing-workaround *' +
+                        `(?:= *(?:" *"|' *') *)?>([\\s\\S]*?)</ *script *>`,
+                        'ig'
+                    ), '$1')
+                    .replace(new RegExp(
+                        '<script +processing(-+)-workaround *' +
+                        `(?:= *(?:" *"|' *') *)?>([\\s\\S]*?)</ *script *>`,
+                        'ig'
+                    ), '<script processing$1workaround>$2</script>')
             }
             throw new Error(
                 `Given template file "${nestedOptions.filename}" couldn't be` +
