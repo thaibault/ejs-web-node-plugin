@@ -203,8 +203,7 @@ export class Template {
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name)) {
                     const currentScope:PlainObject = {
-                        configuration: Tools.copyLimitedRecursively(
-                            configuration, -1, true),
+                        configuration: Tools.copy(configuration, -1, true),
                         currentPath: process.cwd(),
                         fileSystem,
                         parser: ejs,
@@ -226,8 +225,7 @@ export class Template {
                             configuration.template.scope[type][name]
                     ))(...Object.values(currentScope))
                 }
-        const options:PlainObject = Tools.copyLimitedRecursively(
-            configuration.template.options)
+        const options:PlainObject = Tools.copy(configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
             'preTemplateRender', plugins, configuration,
@@ -310,7 +308,7 @@ export class Template {
         if (!options.preCompiledTemplateFileExtensions)
             options.preCompiledTemplateFileExtensions = ['.js']
         return (filePath:string, nestedLocals:Object = {}):string => {
-            let nestedOptions:Object = Tools.copyLimitedRecursively(options)
+            let nestedOptions:Object = Tools.copy(options)
             delete nestedOptions.client
             nestedOptions = Tools.extendObject(
                 true, {encoding: 'utf-8'}, nestedOptions,
