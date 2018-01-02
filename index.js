@@ -263,9 +263,23 @@ export class Template {
                             currentScope.options = currentOptions
                         if (!('plugins' in currentScope))
                             currentScope.plugins = plugins
-                        const result:string = Template.renderFactory(
-                            configuration, currentScope, currentOptions
-                        )(filePath)
+                        const factory:Function = Template.renderFactory(
+                            configuration, currentScope, currentOptions)
+                        try {
+                            const result:string = factory(filePath)
+                        } catch (error) {
+                            if (
+                                configuration.template.inPlaceReplacementPaths
+                                    .includes(filePath)
+                            ) {
+                                console.warn(
+                                    'Error during running in-place ' +
+                                    `replacement template file "${filePath}"` +
+                                    `: ${Tools.representObject(error)}`)
+                                return resolve(newFilePath)
+                            }
+                            throw error
+                        }
                         if (result)
                             try {
                                 fileSystem.writeFile(newFilePath, result, {
@@ -281,8 +295,8 @@ export class Template {
                         else {
                             console.warn(
                                 'An empty template processing result ' +
-                                `detected for file "${newFilePath}" with in ` +
-                                `put file "${filePath}".`)
+                                `detected for file "${newFilePath}" with ` +
+                                `input file "${filePath}".`)
                             resolve(newFilePath)
                         }
                     }
