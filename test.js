@@ -59,7 +59,7 @@ registerTest(async function():Promise<void> {
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
         Index.entryFiles = {[`${targetFilePath}.tpl`]: null}
-        Index.files = Tools.copyLimitedRecursively(Index.entryFiles)
+        Index.files = Tools.copy(Index.entryFiles)
         try {
             assert.ok(await Tools.isFile(targetFilePath))
             await Index.shouldExit({}, configuration)
