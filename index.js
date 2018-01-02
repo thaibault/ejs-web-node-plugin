@@ -265,8 +265,9 @@ export class Template {
                             currentScope.plugins = plugins
                         const factory:Function = Template.renderFactory(
                             configuration, currentScope, currentOptions)
+                        let result:string = ''
                         try {
-                            const result:string = factory(filePath)
+                            result = factory(filePath)
                         } catch (error) {
                             if (
                                 configuration.template.inPlaceReplacementPaths
