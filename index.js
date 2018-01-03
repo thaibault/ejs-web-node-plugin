@@ -269,10 +269,7 @@ export class Template {
                         try {
                             result = factory(filePath)
                         } catch (error) {
-                            if (
-                                configuration.template.inPlaceReplacementPaths
-                                    .includes(filePath)
-                            ) {
+                            if (inPlace) {
                                 console.warn(
                                     'Error during running in-place ' +
                                     `replacement template file "${filePath}"` +
