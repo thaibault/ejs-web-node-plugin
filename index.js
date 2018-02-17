@@ -69,6 +69,7 @@ export class Template {
      */
     static preLoadService(services:Services):Services {
         services.template = {
+            getEntryFiles: Template.getEntryFiles.bind(Template),
             render: Template.render.bind(Template),
             renderFactory: Template.renderFactory.bind(Template)
         }
