@@ -69,6 +69,7 @@ export class Template {
      */
     static preLoadService(services:Services):Services {
         services.template = {
+            getEntryFiles: Template.getEntryFiles.bind(Template),
             render: Template.render.bind(Template),
             renderFactory: Template.renderFactory.bind(Template)
         }
@@ -203,8 +204,7 @@ export class Template {
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name)) {
                     const currentScope:PlainObject = {
-                        configuration: Tools.copyLimitedRecursively(
-                            configuration, -1, true),
+                        configuration: Tools.copy(configuration, -1, true),
                         currentPath: process.cwd(),
                         fileSystem,
                         parser: ejs,
@@ -226,8 +226,7 @@ export class Template {
                             configuration.template.scope[type][name]
                     ))(...Object.values(currentScope))
                 }
-        const options:PlainObject = Tools.copyLimitedRecursively(
-            configuration.template.options)
+        const options:PlainObject = Tools.copy(configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
             'preTemplateRender', plugins, configuration,
@@ -265,9 +264,21 @@ export class Template {
                             currentScope.options = currentOptions
                         if (!('plugins' in currentScope))
                             currentScope.plugins = plugins
-                        const result:string = Template.renderFactory(
-                            configuration, currentScope, currentOptions
-                        )(filePath)
+                        const factory:Function = Template.renderFactory(
+                            configuration, currentScope, currentOptions)
+                        let result:string = ''
+                        try {
+                            result = factory(filePath)
+                        } catch (error) {
+                            if (inPlace) {
+                                console.warn(
+                                    'Error during running in-place ' +
+                                    `replacement template file "${filePath}"` +
+                                    `: ${Tools.representObject(error)}`)
+                                return resolve(newFilePath)
+                            }
+                            throw error
+                        }
                         if (result)
                             try {
                                 fileSystem.writeFile(newFilePath, result, {
@@ -283,8 +294,8 @@ export class Template {
                         else {
                             console.warn(
                                 'An empty template processing result ' +
-                                `detected for file "${newFilePath}" with in ` +
-                                `put file "${filePath}".`)
+                                `detected for file "${newFilePath}" with ` +
+                                `input file "${filePath}".`)
                             resolve(newFilePath)
                         }
                     }
@@ -310,7 +321,7 @@ export class Template {
         if (!options.preCompiledTemplateFileExtensions)
             options.preCompiledTemplateFileExtensions = ['.js']
         return (filePath:string, nestedLocals:Object = {}):string => {
-            let nestedOptions:Object = Tools.copyLimitedRecursively(options)
+            let nestedOptions:Object = Tools.copy(options)
             delete nestedOptions.client
             nestedOptions = Tools.extendObject(
                 true, {encoding: 'utf-8'}, nestedOptions,
