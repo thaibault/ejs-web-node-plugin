@@ -23,10 +23,6 @@ import type {File, PlainObject} from 'clientnode'
 import ejs from 'ejs'
 import fileSystem from 'fs'
 import path from 'path'
-// NOTE: Only needed for debugging this file.
-try {
-    require('source-map-support/register')
-} catch (error) {}
 import PluginAPI from 'web-node/pluginAPI'
 import type {Configuration, Plugin, Services} from 'web-node/type'
 // endregion
