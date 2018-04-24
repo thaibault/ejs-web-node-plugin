@@ -196,6 +196,7 @@ export class Template {
         const scope:Object = Tools.extendObject(true, {
             basePath: configuration.context.path
         }, configuration.template.scope.plain, givenScope || {})
+        const now:Date = new Date()
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
                 if (configuration.template.scope[type].hasOwnProperty(name)) {
@@ -203,6 +204,8 @@ export class Template {
                         configuration: Tools.copy(configuration, -1, true),
                         currentPath: process.cwd(),
                         fileSystem,
+                        now,
+                        nowUTCTimestamp: Tools.numberGetUTCTimestamp(now),
                         parser: ejs,
                         path,
                         PluginAPI,

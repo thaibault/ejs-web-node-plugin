@@ -98,6 +98,8 @@
         "evaluation": {
           "configuration": "configuration",
           "fileSystem": "fileSystem",
+          "now": "now",
+          "nowUTCTimestamp": "nowUTCTimestamp",
           "parser": "parser",
           "path": "path",
           "PluginAPI": "PluginAPI",
