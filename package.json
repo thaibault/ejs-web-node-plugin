@@ -1,6 +1,6 @@
 {
   "name": "templatewebnodeplugin",
-  "version": "1.0.126",
+  "version": "1.0.127",
   "license": "CC-BY-3.0",
   "description": "A static template processor for webNode.",
   "homepage": "http://torben.website/templateWebNodePlugin",
