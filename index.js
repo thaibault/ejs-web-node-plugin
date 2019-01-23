@@ -276,7 +276,7 @@ export class Template {
                                     `: ${Tools.representObject(error)}`)
                                 return resolve(newFilePath)
                             }
-                            throw error
+                            throw Error(error)
                         }
                         if (result)
                             try {
