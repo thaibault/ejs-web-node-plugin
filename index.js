@@ -193,9 +193,12 @@ export class Template {
     static async render(
         givenScope:?Object, configuration:Configuration, plugins:Array<Plugin>
     ):Promise<Object> {
-        const scope:Object = Tools.extendObject(true, {
-            basePath: configuration.context.path
-        }, configuration.template.scope.plain, givenScope || {})
+        const scope:Object = Tools.extend(
+            true,
+            {basePath: configuration.context.path},
+            configuration.template.scope.plain,
+            givenScope || {}
+        )
         const now:Date = new Date()
         for (const type:string of ['evaluation', 'execution'])
             for (const name:string in configuration.template.scope[type])
@@ -236,7 +239,7 @@ export class Template {
                 templateRenderingPromises.push(new Promise(async (
                     resolve:Function, reject:Function
                 ):Promise<void> => {
-                    const currentScope:Object = Tools.extendObject({}, scope)
+                    const currentScope:Object = Tools.extend({}, scope)
                     const inPlace:boolean =
                         configuration.template.inPlaceReplacementPaths
                             .includes(filePath)
@@ -256,9 +259,13 @@ export class Template {
                             `for "${filePath}".`)
                         resolve(newFilePath)
                     } else {
-                        const currentOptions:PlainObject = Tools.extendObject({
-                        }, options, {filename: path.relative(
-                            currentScope.basePath, filePath)})
+                        const currentOptions:PlainObject = Tools.extend(
+                            {},
+                            options,
+                            {filename:
+                                path.relative(currentScope.basePath, filePath)
+                            }
+                        )
                         if (!('options' in currentScope))
                             currentScope.options = currentOptions
                         if (!('plugins' in currentScope))
@@ -322,10 +329,13 @@ export class Template {
         return (filePath:string, nestedLocals:Object = {}):string => {
             let nestedOptions:Object = Tools.copy(options)
             delete nestedOptions.client
-            nestedOptions = Tools.extendObject(
-                true, {encoding: 'utf-8'}, nestedOptions,
-                nestedLocals.options || {})
-            const nestedScope:Object = Tools.extendObject({}, scope)
+            nestedOptions = Tools.extend(
+                true,
+                {encoding: 'utf-8'},
+                nestedOptions,
+                nestedLocals.options || {}
+            )
+            const nestedScope:Object = Tools.extend({}, scope)
             filePath = path.resolve(scope.basePath, filePath)
             nestedOptions.filename = path.relative(scope.basePath, filePath)
             nestedScope.basePath = path.dirname(filePath)
@@ -333,7 +343,7 @@ export class Template {
                 configuration, nestedScope, nestedOptions)
             nestedScope.options = nestedOptions
             nestedScope.scope = nestedScope
-            Tools.extendObject(nestedScope, nestedLocals)
+            Tools.extend(nestedScope, nestedLocals)
             let currentFilePath:?string = null
             for (const extension:string of [''].concat(
                 configuration.template.extensions

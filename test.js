@@ -27,10 +27,12 @@ import Index from './index'
 // endregion
 registerTest(async function():Promise<void> {
     // region mockup
-    const configuration:Configuration = Tools.extendObject(
-        true, {}, baseConfiguration, {plugin: {directories: {test: {
-            path: './dummyPlugin'
-        }}}})
+    const configuration:Configuration = Tools.extend(
+        true,
+        {},
+        baseConfiguration,
+        {plugin: {directories: {test: {path: './dummyPlugin'}}}}
+    )
     // endregion
     // region tests
     // / region api
