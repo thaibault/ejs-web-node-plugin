@@ -6,7 +6,7 @@ Copyright Torben Sickert 16.12.2012
 License
    This library written by Torben Sickert stand under a creative commons
    naming 3.0 unported license.
-   see http://creativecommons.org/licenses/by/3.0/deed.de
+   see https://creativecommons.org/licenses/by/3.0/deed.de
 endregion -->
 
 Project status
@@ -19,7 +19,7 @@ Project status
 [![dependencies](https://img.shields.io/david/thaibault/templatewebnodeplugin.svg)](https://david-dm.org/thaibault/templatewebnodeplugin)
 [![development dependencies](https://img.shields.io/david/dev/thaibault/templatewebnodeplugin.svg)](https://david-dm.org/thaibault/templatewebnodeplugin?type=dev)
 [![peer dependencies](https://img.shields.io/david/peer/thaibault/templatewebnodeplugin.svg)](https://david-dm.org/thaibault/templatewebnodeplugin?type=peer)
-[![documentation website](https://img.shields.io/website-up-down-green-red/http/torben.website/templateWebNodePlugin.svg?label=documentation-website)](http://torben.website/templateWebNodePlugin)
+[![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/templateWebNodePlugin.svg?label=documentation-website)](https://torben.website/templateWebNodePlugin)
 
 Use case
 --------
