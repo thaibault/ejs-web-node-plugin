@@ -99,9 +99,12 @@ export class Template {
                         reject(error)
                     }
                     if (newFileExists)
-                        fileSystem.unlink(newFilePath, (error:?Error):void => (
-                            error
-                        ) ? reject(error) : resolve(newFilePath))
+                        try {
+                            resolve(await fileSystem.promses.unlink(
+                                newFilePath))
+                        } catch (error) {
+                            reject(error)
+                        }
                     else
                         resolve(newFileExists)
                 }))
@@ -287,13 +290,16 @@ export class Template {
                         }
                         if (result)
                             try {
-                                fileSystem.writeFile(newFilePath, result, {
-                                    encoding: configuration.encoding,
-                                    flag: 'w',
-                                    mode: 0o666
-                                }, (error:?Error):void => error ? reject(
-                                    error
-                                ) : resolve(newFilePath))
+                                await fileSystem.promises.writeFile(
+                                    newFilePath,
+                                    result,
+                                    {
+                                        encoding: configuration.encoding,
+                                        flag: 'w',
+                                        mode: 0o666
+                                    }
+                                )
+                                resolve(newFilePath)
                             } catch (error) {
                                 reject(error)
                             }
@@ -357,9 +363,11 @@ export class Template {
                     configuration.template.reloadSourceContent &&
                     !configuration.template.inPlaceReplacementPaths.includes(
                         filePath
-                    ) || !(
+                    ) ||
+                    !(
                         Template.files.hasOwnProperty(currentFilePath) &&
-                        Template.files[currentFilePath])
+                        Template.files[currentFilePath]
+                    )
                 )
                     if (
                         nestedOptions.preCompiledTemplateFileExtensions
