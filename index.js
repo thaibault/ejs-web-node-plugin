@@ -23,7 +23,7 @@ import type {File, PlainObject} from 'clientnode'
 import ejs from 'ejs'
 import fileSystem from 'fs'
 import path from 'path'
-import PluginAPI from 'web-node/pluginAPI'
+import {PluginAPI} from 'web-node'
 import type {Configuration, Plugin, Services} from 'web-node/type'
 // endregion
 /**
@@ -100,7 +100,7 @@ export class Template {
                     }
                     if (newFileExists)
                         try {
-                            resolve(await fileSystem.promses.unlink(
+                            resolve(await fileSystem.promises.unlink(
                                 newFilePath))
                         } catch (error) {
                             reject(error)
@@ -166,14 +166,16 @@ export class Template {
                             )))
                                 return false
             })
-        ).filter((file:File):boolean|null => file.stats && file.stats.isFile(
-        ) &&
-        configuration.template.extensions.filter((extension:string):boolean =>
+        ).filter((file:File):boolean|null =>
+            file.stats &&
+            file.stats.isFile() &&
             /*
                 NOTE: We can't use "path.extname()" here since double
                 extensions like ".html.js" should be supported.
             */
-            file.name.endsWith(extension)).length > 0
+            configuration.template.extensions.filter((
+                extension:string
+            ):boolean => file.name.endsWith(extension)).length > 0
         ))
             Template.entryFiles[file.path] = null
         for (
@@ -226,8 +228,7 @@ export class Template {
                     scope[name] = (new Function(
                         ...Object.keys(currentScope), type === 'evaluation' ?
                             'return ' +
-                            configuration.template.scope[type][name]
-                            :
+                            configuration.template.scope[type][name] :
                             configuration.template.scope[type][name]
                     ))(...Object.values(currentScope))
                 }
