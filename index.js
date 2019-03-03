@@ -23,7 +23,7 @@ import type {File, PlainObject} from 'clientnode'
 import ejs from 'ejs'
 import fileSystem from 'fs'
 import path from 'path'
-import PluginAPI from 'web-node/pluginAPI'
+import {PluginAPI} from 'web-node'
 import type {Configuration, Plugin, Services} from 'web-node/type'
 // endregion
 /**
@@ -99,9 +99,12 @@ export class Template {
                         reject(error)
                     }
                     if (newFileExists)
-                        fileSystem.unlink(newFilePath, (error:?Error):void => (
-                            error
-                        ) ? reject(error) : resolve(newFilePath))
+                        try {
+                            resolve(await fileSystem.promises.unlink(
+                                newFilePath))
+                        } catch (error) {
+                            reject(error)
+                        }
                     else
                         resolve(newFileExists)
                 }))
@@ -163,14 +166,16 @@ export class Template {
                             )))
                                 return false
             })
-        ).filter((file:File):boolean|null => file.stats && file.stats.isFile(
-        ) &&
-        configuration.template.extensions.filter((extension:string):boolean =>
+        ).filter((file:File):boolean|null =>
+            file.stats &&
+            file.stats.isFile() &&
             /*
                 NOTE: We can't use "path.extname()" here since double
                 extensions like ".html.js" should be supported.
             */
-            file.name.endsWith(extension)).length > 0
+            configuration.template.extensions.filter((
+                extension:string
+            ):boolean => file.name.endsWith(extension)).length > 0
         ))
             Template.entryFiles[file.path] = null
         for (
@@ -223,8 +228,7 @@ export class Template {
                     scope[name] = (new Function(
                         ...Object.keys(currentScope), type === 'evaluation' ?
                             'return ' +
-                            configuration.template.scope[type][name]
-                            :
+                            configuration.template.scope[type][name] :
                             configuration.template.scope[type][name]
                     ))(...Object.values(currentScope))
                 }
@@ -287,13 +291,16 @@ export class Template {
                         }
                         if (result)
                             try {
-                                fileSystem.writeFile(newFilePath, result, {
-                                    encoding: configuration.encoding,
-                                    flag: 'w',
-                                    mode: 0o666
-                                }, (error:?Error):void => error ? reject(
-                                    error
-                                ) : resolve(newFilePath))
+                                await fileSystem.promises.writeFile(
+                                    newFilePath,
+                                    result,
+                                    {
+                                        encoding: configuration.encoding,
+                                        flag: 'w',
+                                        mode: 0o666
+                                    }
+                                )
+                                resolve(newFilePath)
                             } catch (error) {
                                 reject(error)
                             }
@@ -357,9 +364,11 @@ export class Template {
                     configuration.template.reloadSourceContent &&
                     !configuration.template.inPlaceReplacementPaths.includes(
                         filePath
-                    ) || !(
+                    ) ||
+                    !(
                         Template.files.hasOwnProperty(currentFilePath) &&
-                        Template.files[currentFilePath])
+                        Template.files[currentFilePath]
+                    )
                 )
                     if (
                         nestedOptions.preCompiledTemplateFileExtensions
