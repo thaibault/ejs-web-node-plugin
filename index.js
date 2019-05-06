@@ -284,7 +284,8 @@ export class Template {
                                 console.warn(
                                     'Error during running in-place ' +
                                     `replacement template file "${filePath}"` +
-                                    `: ${Tools.representObject(error)}`)
+                                    `: ${Tools.represent(error)}`
+                                )
                                 return resolve(newFilePath)
                             }
                             throw error
@@ -381,7 +382,8 @@ export class Template {
                             throw new Error(
                                 'Error occurred during loading script module' +
                                 `: "${currentFilePath}": ` +
-                                Tools.representObject(error))
+                                Tools.represent(error)
+                            )
                         }
                     else {
                         let template:string
@@ -394,7 +396,8 @@ export class Template {
                             throw new Error(
                                 'Error occurred during loading template ' +
                                 `file "${currentFilePath}" from file system:` +
-                                ` ${Tools.representObject(error)}`)
+                                ` ${Tools.represent(error)}`
+                            )
                         }
                         try {
                             Template.files[currentFilePath] = ejs.compile(
@@ -404,7 +407,8 @@ export class Template {
                                 'Error occurred during compiling template ' +
                                 `file "${currentFilePath}" with base path "` +
                                 `${nestedScope.basePath}": ` +
-                                Tools.representObject(error))
+                                Tools.represent(error)
+                            )
                         }
                     }
                 let result:string = ''
@@ -414,14 +418,14 @@ export class Template {
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {
-                        scopeDescription = 'scope ' + Tools.representObject(
-                            nestedScope
-                        ) + ' against'
+                        scopeDescription =
+                            `scope ${Tools.represent(nestedScope)} against`
                     } catch (error) {}
                     throw new Error(
                         'Error occurred during running template ' +
                         `${scopeDescription}file "${currentFilePath}": ` +
-                        Tools.representObject(error))
+                        Tools.represent(error)
+                    )
                 }
                 return result
                     .replace(new RegExp(
