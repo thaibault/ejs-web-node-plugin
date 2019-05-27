@@ -21,7 +21,8 @@
 import Tools from 'clientnode'
 import type {File, PlainObject} from 'clientnode'
 import ejs from 'ejs'
-import fileSystem from 'fs'
+import {promises as fileSystem} from 'fs'
+import synchronousFileSystem from 'fs'
 import path from 'path'
 import {PluginAPI} from 'web-node'
 import type {Configuration, Plugin, Services} from 'web-node/type'
@@ -100,7 +101,7 @@ export class Template {
                     }
                     if (newFileExists)
                         try {
-                            resolve(await fileSystem.promises.unlink(
+                            resolve(await synchronousFileSystem.unlink(
                                 newFilePath))
                         } catch (error) {
                             reject(error)
@@ -220,6 +221,7 @@ export class Template {
                         plugins,
                         require: eval('require'),
                         scope,
+                        synchronousFileSystem,
                         template: Template,
                         Tools,
                         webNodePath: __dirname
@@ -299,7 +301,7 @@ export class Template {
                         }
                         if (result)
                             try {
-                                await fileSystem.promises.writeFile(
+                                await fileSystem.writeFile(
                                     newFilePath,
                                     result,
                                     {
@@ -400,7 +402,7 @@ export class Template {
                         let template:string
                         try {
                             // IgnoreTypeCheck
-                            template = fileSystem.readFileSync(
+                            template = synchronousFileSystem.readFileSync(
                                 currentFilePath,
                                 {encoding: nestedOptions.encoding}
                             )
