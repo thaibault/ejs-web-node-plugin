@@ -101,8 +101,7 @@ export class Template {
                     }
                     if (newFileExists)
                         try {
-                            resolve(await synchronousFileSystem.unlink(
-                                newFilePath))
+                            resolve(await fileSystem.unlink(newFilePath))
                         } catch (error) {
                             reject(error)
                         }
