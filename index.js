@@ -21,7 +21,8 @@
 import Tools from 'clientnode'
 import type {File, PlainObject} from 'clientnode'
 import ejs from 'ejs'
-import fileSystem from 'fs'
+import {promises as fileSystem} from 'fs'
+import synchronousFileSystem from 'fs'
 import path from 'path'
 import {PluginAPI} from 'web-node'
 import type {Configuration, Plugin, Services} from 'web-node/type'
@@ -100,8 +101,7 @@ export class Template {
                     }
                     if (newFileExists)
                         try {
-                            resolve(await fileSystem.promises.unlink(
-                                newFilePath))
+                            resolve(await fileSystem.unlink(newFilePath))
                         } catch (error) {
                             reject(error)
                         }
@@ -220,13 +220,15 @@ export class Template {
                         plugins,
                         require: eval('require'),
                         scope,
+                        synchronousFileSystem,
                         template: Template,
                         Tools,
                         webNodePath: __dirname
                     }
                     // IgnoreTypeCheck
                     scope[name] = (new Function(
-                        ...Object.keys(currentScope), type === 'evaluation' ?
+                        ...Object.keys(currentScope),
+                        type === 'evaluation' ?
                             'return ' +
                             configuration.template.scope[type][name] :
                             configuration.template.scope[type][name]
@@ -235,8 +237,12 @@ export class Template {
         const options:PlainObject = Tools.copy(configuration.template.options)
         scope.include = Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
-            'preTemplateRender', plugins, configuration,
-            await Template.getEntryFiles(configuration, plugins), scope)
+            'preTemplateRender',
+            plugins,
+            configuration,
+            await Template.getEntryFiles(configuration, plugins),
+            scope
+        )
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const filePath:string in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
@@ -260,14 +266,16 @@ export class Template {
                     ) {
                         console.info(
                             `Template: Use cached file ("${newFilePath}") ` +
-                            `for "${filePath}".`)
+                            `for "${filePath}".`
+                        )
                         resolve(newFilePath)
                     } else {
                         const currentOptions:PlainObject = Tools.extend(
                             {},
                             options,
-                            {filename:
-                                path.relative(currentScope.basePath, filePath)
+                            {
+                                filename: path.relative(
+                                    currentScope.basePath, filePath)
                             }
                         )
                         if (!('options' in currentScope))
@@ -292,7 +300,7 @@ export class Template {
                         }
                         if (result)
                             try {
-                                await fileSystem.promises.writeFile(
+                                await fileSystem.writeFile(
                                     newFilePath,
                                     result,
                                     {
@@ -309,14 +317,18 @@ export class Template {
                             console.warn(
                                 'An empty template processing result ' +
                                 `detected for file "${newFilePath}" with ` +
-                                `input file "${filePath}".`)
+                                `input file "${filePath}".`
+                            )
                             resolve(newFilePath)
                         }
                     }
                 }))
         await Promise.all(templateRenderingPromises)
         return await PluginAPI.callStack(
-            'postTemplateRender', plugins, configuration, scope,
+            'postTemplateRender',
+            plugins,
+            configuration,
+            scope,
             Template.entryFiles
         )
     }
@@ -389,9 +401,10 @@ export class Template {
                         let template:string
                         try {
                             // IgnoreTypeCheck
-                            template = fileSystem.readFileSync(
-                                currentFilePath, {
-                                    encoding: nestedOptions.encoding})
+                            template = synchronousFileSystem.readFileSync(
+                                currentFilePath,
+                                {encoding: nestedOptions.encoding}
+                            )
                         } catch (error) {
                             throw new Error(
                                 'Error occurred during loading template ' +
@@ -443,7 +456,8 @@ export class Template {
                 `Given template file "${nestedOptions.filename}" couldn't be` +
                 ' resolved (with known extensions: "' +
                 `${configuration.template.extensions.join('", "')}") in "` +
-                `${scope.basePath}".`)
+                `${scope.basePath}".`
+            )
         }
     }
     // endregion
