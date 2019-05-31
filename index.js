@@ -231,7 +231,7 @@ export class Template {
                         type === 'evaluation' ?
                             'return ' +
                             configuration.template.scope[type][name] :
-                                configuration.template.scope[type][name]
+                            configuration.template.scope[type][name]
                     ))(...Object.values(currentScope))
                 }
         const options:PlainObject = Tools.copy(configuration.template.options)
