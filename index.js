@@ -36,8 +36,8 @@ import type {Configuration, Plugin, Services} from 'web-node/type'
  * compiled template function.
  */
 export class Template {
-    static entryFiles:{[key:string]:?Function}
-    static files:{[key:string]:?Function} = {}
+    static entryFiles:{[key:string]:Function|null}
+    static files:{[key:string]:Function|null} = {}
     // region api
     /**
      * Triggered hook when at least one plugin has a new configuration file and
