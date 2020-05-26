@@ -46,19 +46,12 @@ export type Configuration = BaseConfiguration & {
         };
     };
 }
-export type Service = BaseService & {
-    name:'template';
-    promise:Promise<>;
-}
 // TODO
 export type Services = BaseServices & {template:{
     getEntryFiles:;
     render:;
     renderFactory:;
 }}
-export type ServicePromises = BaseServicePromises & {
-    template:Promise<>;
-}
 export interface PluginHandler extends BasePluginHandler {
     // TODO
     /**
