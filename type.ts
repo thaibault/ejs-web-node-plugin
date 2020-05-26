@@ -14,6 +14,7 @@
     endregion
 */
 // region imports
+import {Mapping} from 'clientnode/type'
 import {
     Configuration as BaseConfiguration,
     PluginHandler as BasePluginHandler,
@@ -25,35 +26,59 @@ import {
 // region exports
 export type Configuration = BaseConfiguration & {
     template:{
-        application:{
-            rootPath:string;
-            port:number;
-            hostName:string;
+        cache:boolean;
+        cacheInPlaceReplacements:boolean;
+        extensions:Array<string>;
+        inPlaceReplacementPaths:Array<string>;
+        locationsToIgnore:Array<string>;
+        options:{
+            cache:boolean;
+            compileDebug:boolean;
+            debug:boolean;
         };
-        authentication:{
-            login:string;
-            password:string;
-            salt:string;
-            staticAssets:boolean;
+        renderAfterConfigurationUpdates:boolean;
+        reloadEntryFiles:boolean;
+        reloadSourceContent:boolean;
+        scope:{
+            evaluation:Mapping;
+            execution:Mapping;
+            plain:Mapping;
         };
-        dynamicPathPrefix:string;
-        hostNamePrefix:string;
-        hostNamePattern:string;
-        httpBasicAuthenticationCancelRedirectHTMLContent:string;
-        options:SecureServerOptions;
-    }
+    };
 }
 export type Service = BaseService & {
     name:'template';
     promise:Promise<>;
 }
+// TODO
 export type Services = BaseServices & {template:{
+    getEntryFiles:;
+    render:;
+    renderFactory:;
 }}
 export type ServicePromises = BaseServicePromises & {
     template:Promise<>;
 }
 export interface PluginHandler extends BasePluginHandler {
-    
+    // TODO
+    /**
+     * @param configuration - Configuration object extended by each plugin
+     * specific configuration.
+     * @param plugins - Topological sorted list of plugins.
+     */
+    preTemplateRender?(
+        configuration:Configuration,
+        plugins:Array<Plugin>
+    ):Promise<>
+    /**
+     * @param configuration - Configuration object extended by each plugin
+     * specific configuration.
+     * @param plugins - Topological sorted list of plugins.
+     */
+    postTemplateRender?(
+        configuration:Configuration,
+        plugins:Array<Plugin>
+    ):Promise<>
 }
 // endregion
 // region vim modline

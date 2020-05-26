@@ -24,7 +24,7 @@ import {promises as fileSystem} from 'fs'
 import synchronousFileSystem from 'fs'
 import path from 'path'
 import {PluginAPI} from 'web-node'
-import {Plugin} from 'web-node/type'
+import {Plugin, PluginHandler} from 'web-node/type'
 
 import {Configuration, Services} from './type'
 // endregion
@@ -36,7 +36,7 @@ import {Configuration, Services} from './type'
  * @property static:files - Mapping from determined file paths to there
  * compiled template function.
  */
-export class Template {
+export class Template implements PluginHandler {
     static entryFiles:{[key:string]:Function|null}
     static files:{[key:string]:Function|null} = {}
     // region api

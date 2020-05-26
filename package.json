@@ -87,10 +87,10 @@
       ],
       "options": {
         "cache": true,
-        "debug": {
+        "compileDebug": {
           "__evaluate__": "self.debug"
         },
-        "compileDebug": {
+        "debug": {
           "__evaluate__": "self.debug"
         }
       },
