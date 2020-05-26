@@ -55,20 +55,30 @@ export type Services = BaseServices & {template:{
 export interface PluginHandler extends BasePluginHandler {
     // TODO
     /**
+     * @param entryFiles - .
+     * @param scope - .
      * @param configuration - Configuration object extended by each plugin
      * specific configuration.
      * @param plugins - Topological sorted list of plugins.
+     * @returns .
      */
     preTemplateRender?(
+        entryFiles:,
+        scope:,
         configuration:Configuration,
         plugins:Array<Plugin>
     ):Promise<>
     /**
+     * @param scope - .
+     * @param entryFiles - .
      * @param configuration - Configuration object extended by each plugin
      * specific configuration.
      * @param plugins - Topological sorted list of plugins.
+     * @returns .
      */
     postTemplateRender?(
+        scope:,
+        entryFiles:,
         configuration:Configuration,
         plugins:Array<Plugin>
     ):Promise<>
