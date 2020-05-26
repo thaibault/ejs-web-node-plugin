@@ -18,13 +18,15 @@
 */
 // region imports
 import Tools from 'clientnode'
-import type {File, PlainObject} from 'clientnode'
+import {File, PlainObject} from 'clientnode/type'
 import ejs from 'ejs'
 import {promises as fileSystem} from 'fs'
 import synchronousFileSystem from 'fs'
 import path from 'path'
 import {PluginAPI} from 'web-node'
-import type {Configuration, Plugin, Services} from 'web-node/type'
+import {Plugin} from 'web-node/type'
+
+import {Configuration, Services} from './type'
 // endregion
 /**
  * Renders all templates again configuration object and re-renders them after
