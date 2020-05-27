@@ -18,7 +18,7 @@
 */
 // region imports
 import Tools from 'clientnode'
-import {File, PlainObject} from 'clientnode/type'
+import {File, Mapping, PlainObject} from 'clientnode/type'
 import ejs from 'ejs'
 import {promises as fileSystem} from 'fs'
 import synchronousFileSystem from 'fs'
@@ -26,7 +26,9 @@ import path from 'path'
 import {PluginAPI} from 'web-node'
 import {Plugin, PluginHandler} from 'web-node/type'
 
-import {Configuration, TemplateFiles, Services} from './type'
+import {
+    Configuration, RenderOptions, RuntimeScope, Scope, TemplateFiles, Services
+} from './type'
 // endregion
 /**
  * Renders all templates again configuration object and re-renders them after
@@ -83,7 +85,7 @@ export class Template implements PluginHandler {
         services:Services, configuration:Configuration
     ):Promise<Services> {
         const templateOutputRemoveingPromises:Array<Promise<string>> = []
-        for (const filePath:string in Template.files)
+        for (const filePath in Template.files)
             if (
                 Template.files.hasOwnProperty(filePath) &&
                 !configuration.template.inPlaceReplacementPaths.includes(
@@ -129,21 +131,24 @@ export class Template implements PluginHandler {
             plugin.path
         )
         Template.entryFiles = {}
-        for (const file:File of (await Tools.walkDirectoryRecursively(
-            configuration.context.path, (file:File):?false => {
+        for (const file of (await Tools.walkDirectoryRecursively(
+            configuration.context.path, (file:File):false|void => {
                 if (file.name.startsWith('.'))
                     return false
                 /*
                     NOTE: We want to ignore all known plugin locations which
                     aren't loaded.
                 */
-                for (const type:string in configuration.plugin.directories)
+                for (const type in configuration.plugin.directories)
                     if (
                         configuration.plugin.directories.hasOwnProperty(
                             type
                         ) &&
                         path.dirname(file.path) === path.resolve(
-                            configuration.plugin.directories[type].path
+                            configuration.plugin.directories[
+                                type as keyof Configuration['plugin'][
+                                    'directories']
+                            ].path
                         ) &&
                         !pluginPaths.includes(file.path)
                     )
@@ -153,7 +158,7 @@ export class Template implements PluginHandler {
                     defined in each loaded plugin location.
                 */
                 for (
-                    const locationToIgnore:string of
+                    const locationToIgnore of
                     configuration.template.locationsToIgnore
                 )
                     if (locationToIgnore.startsWith('/')) {
@@ -162,7 +167,7 @@ export class Template implements PluginHandler {
                         )))
                             return false
                     } else
-                        for (const pluginPath:string of pluginPaths)
+                        for (const pluginPath of pluginPaths)
                             if (file.path.startsWith(path.resolve(
                                 pluginPath, locationToIgnore
                             )))
@@ -181,12 +186,9 @@ export class Template implements PluginHandler {
                 ).length > 0
         ))
             Template.entryFiles[file.path] = null
-        for (
-            const filePath:string of
-            configuration.template.inPlaceReplacementPaths
-        )
+        for (const filePath of configuration.template.inPlaceReplacementPaths)
             Template.entryFiles[filePath] = null
-        for (const filePath:string in Template.entryFiles)
+        for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
                 Template.files[filePath] = Template.entryFiles[filePath]
         return Template.entryFiles
@@ -199,19 +201,24 @@ export class Template implements PluginHandler {
      * @returns A promise resolving to scope used for template rendering.
      */
     static async render(
-        givenScope:object, configuration:Configuration, plugins:Array<Plugin>
-    ):Promise<object> {
-        const scope:object = Tools.extend(
+        givenScope:null|object,
+        configuration:Configuration,
+        plugins:Array<Plugin>
+    ):Promise<Scope> {
+        const scope:Scope = Tools.extend(
             true,
             {basePath: configuration.context.path},
             configuration.template.scope.plain,
             givenScope || {}
         )
         const now:Date = new Date()
-        for (const type:string of ['evaluation', 'execution'])
-            for (const name:string in configuration.template.scope[type])
-                if (configuration.template.scope[type].hasOwnProperty(name)) {
-                    const currentScope:PlainObject = {
+        for (const type of ['evaluation', 'execution']) {
+            const evaluation:Mapping = configuration.template.scope[
+                type as keyof Configuration['template']['scope']
+            ]
+            for (const name in evaluation)
+                if (evaluation.hasOwnProperty(name)) {
+                    const currentScope:object = {
                         configuration: Tools.copy(configuration, -1, true),
                         currentPath: process.cwd(),
                         fileSystem,
@@ -227,18 +234,19 @@ export class Template implements PluginHandler {
                         template: Template,
                         Tools,
                         webNodePath: __dirname
-                    }
-                    scope[name] = (new Function(
+                    };
+                    (scope as Mapping<Function>)[name] = (new Function(
                         ...Object.keys(currentScope),
                         type === 'evaluation' ?
-                            'return ' +
-                            configuration.template.scope[type][name] :
-                            configuration.template.scope[type][name]
+                            `return ${evaluation[name]}` :
+                            evaluation[name]
                     ))(...Object.values(currentScope))
                 }
-        const options:Configuration['template']['options'] =
-            Tools.copy(configuration.template.options)
-        scope.include = Template.renderFactory(configuration, scope, options)
+        }
+        const options:RenderOptions =
+            Tools.copy(configuration.template.options);
+        (scope as Mapping<Function>).include =
+            Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
             'preTemplateRender',
             plugins,
@@ -247,12 +255,12 @@ export class Template implements PluginHandler {
             scope
         )
         const templateRenderingPromises:Array<Promise<string>> = []
-        for (const filePath:string in Template.entryFiles)
+        for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
                 templateRenderingPromises.push(new Promise(async (
                     resolve:Function, reject:Function
                 ):Promise<void> => {
-                    const currentScope:object = Tools.extend({}, scope)
+                    const currentScope:RuntimeScope = Tools.extend({}, scope)
                     const inPlace:boolean =
                         configuration.template.inPlaceReplacementPaths
                             .includes(filePath)
@@ -275,7 +283,7 @@ export class Template implements PluginHandler {
                         )
                         resolve(newFilePath)
                     } else {
-                        const currentOptions:PlainObject = Tools.extend(
+                        const currentOptions:RenderOptions = Tools.extend(
                             {},
                             options,
                             {
@@ -345,32 +353,35 @@ export class Template implements PluginHandler {
      * @returns Render function.
      */
     static renderFactory(
-        configuration:Configuration, scope:object = {}, options:object = {}
+        configuration:Configuration,
+        scope:Scope = {} as Scope,
+        options:RenderOptions = {} as RenderOptions
     ):Function {
-        if (!scope.basePath)
+        if (!('basePath' in scope))
             scope.basePath = configuration.context.path
-        if (!options.preCompiledTemplateFileExtensions)
+        if (!('preCompiledTemplateFileExtensions' in options))
             options.preCompiledTemplateFileExtensions = ['.js']
         return (filePath:string, nestedLocals:object = {}):string => {
-            let nestedOptions:object = Tools.copy(options)
+            let nestedOptions:RenderOptions = Tools.copy(options)
             delete nestedOptions.client
             nestedOptions = Tools.extend(
                 true,
                 {encoding: 'utf-8'},
                 nestedOptions,
-                nestedLocals.options || {}
+                (nestedLocals as {options:RenderOptions}).options || {}
             )
-            const nestedScope:object = Tools.extend({}, scope)
+            const nestedScope:Scope = Tools.extend({}, scope)
             filePath = path.resolve(scope.basePath, filePath)
             nestedOptions.filename = path.relative(scope.basePath, filePath)
             nestedScope.basePath = path.dirname(filePath)
             nestedScope.include = Template.renderFactory(
-                configuration, nestedScope, nestedOptions)
+                configuration, nestedScope, nestedOptions
+            )
             nestedScope.options = nestedOptions
             nestedScope.scope = nestedScope
             Tools.extend(nestedScope, nestedLocals)
-            let currentFilePath:?string = null
-            for (const extension:string of [''].concat(
+            let currentFilePath:null|string = null
+            for (const extension of [''].concat(
                 configuration.template.extensions
             ))
                 if (Tools.isFileSync(filePath + extension)) {
@@ -418,7 +429,8 @@ export class Template implements PluginHandler {
                         }
                         try {
                             Template.files[currentFilePath] = ejs.compile(
-                                template, nestedOptions)
+                                template, nestedOptions
+                            )
                         } catch (error) {
                             throw new Error(
                                 'Error occurred during compiling template ' +

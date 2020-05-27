@@ -43,6 +43,7 @@
     "ejs": "*"
   },
   "devDependencies": {
+    "@types/ejs": "*",
     "@types/jest": "*",
     "@types/loader-utils": "*",
     "@types/node": "*",

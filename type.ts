@@ -15,6 +15,7 @@
 */
 // region imports
 import {Mapping} from 'clientnode/type'
+import {Options as EJSOptions} from 'ejs'
 import {
     Configuration as BaseConfiguration,
     PluginHandler as BasePluginHandler,
@@ -26,7 +27,9 @@ import {
 import Template from './index'
 // endregion
 // region exports
-export type TemplateFiles = Mapping<Function|null>
+export type RenderOptions = EJSOptions & {
+    preCompiledTemplateFileExtensions:Array<string>;
+}
 export type Configuration = BaseConfiguration & {
     template:{
         cache:boolean;
@@ -34,11 +37,7 @@ export type Configuration = BaseConfiguration & {
         extensions:Array<string>;
         inPlaceReplacementPaths:Array<string>;
         locationsToIgnore:Array<string>;
-        options:{
-            cache:boolean;
-            compileDebug:boolean;
-            debug:boolean;
-        };
+        options:RenderOptions;
         renderAfterConfigurationUpdates:boolean;
         reloadEntryFiles:boolean;
         reloadSourceContent:boolean;
@@ -49,11 +48,21 @@ export type Configuration = BaseConfiguration & {
         };
     };
 }
+export type Scope = object & {
+    basePath:string;
+    include:Function;
+    options:RenderOptions;
+    scope:Scope;
+}
+export type RuntimeScope = Scope & {
+    plugins:Array<Plugin>;
+}
 export type Services = BaseServices & {template:{
     getEntryFiles:Template['getEntryFiles'];
     render:Template['render'];
     renderFactory:Template['renderFactory'];
 }}
+export type TemplateFiles = Mapping<Function|null>
 export interface PluginHandler extends BasePluginHandler {
     /**
      * @param entryFiles - Mapping from template file path to compiled function
@@ -66,7 +75,7 @@ export interface PluginHandler extends BasePluginHandler {
      */
     preTemplateRender?(
         entryFiles:TemplateFiles,
-        scope:object,
+        scope:Scope,
         configuration:Configuration,
         plugins:Array<Plugin>
     ):Promise<TemplateFiles>
@@ -80,11 +89,11 @@ export interface PluginHandler extends BasePluginHandler {
      * @returns Given scope.
      */
     postTemplateRender?(
-        scope:object,
+        scope:Scope,
         entryFiles:TemplateFiles,
         configuration:Configuration,
         plugins:Array<Plugin>
-    ):Promise<object>
+    ):Promise<Scope>
 }
 // endregion
 // region vim modline
