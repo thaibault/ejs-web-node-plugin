@@ -14,73 +14,71 @@
     endregion
 */
 // region imports
-import type {PlainObject} from 'clientnode'
 import Tools from 'clientnode'
+import {PlainObject} from 'clientnode/type'
 import fileSystem from 'fs'
 import path from 'path'
-import registerTest from 'clientnode/test'
-import {configuration as baseConfiguration} from 'web-node'
-import type {Configuration} from 'web-node/type'
+import {configuration as baseConfiguration, PluginAPI} from 'web-node'
 
+import {Configuration} from './type'
 import Index from './index'
 // endregion
-registerTest(async function():Promise<void> {
+describe('template', ():void => {
     // region mockup
-    const configuration:Configuration = Tools.extend(
-        true,
-        {},
-        baseConfiguration,
-        {plugin: {directories: {test: {path: './dummyPlugin'}}}}
-    )
+    let configuration:Configuration
+    beforeAll(async ():Promise<void> => {
+        configuration = Tools.extend(
+            (await PluginAPI.loadAll(baseConfiguration)) as
+                unknown as
+                Configuration,
+            {server: {proxy: {ports: []}}}
+        )
+    })
     // endregion
     // region tests
     // / region api
-    this.test('postConfigurationLoaded', async (
-        assert:Object
-    ):Promise<void> => {
-        const done:Function = assert.async()
+    test('postConfigurationLoaded', async ():Promise<void> => {
         configuration.template.renderAfterConfigurationUpdates = false
         try {
             await Index.postConfigurationLoaded(
-                configuration, [], configuration, [])
+                configuration, [], configuration, []
+            )
         } catch (error) {
             console.error(error)
         }
-        assert.notOk(await Tools.isFile('./dummyPlugin/dummy.txt'))
-        done()
+        expect(await Tools.isFile('./dummyPlugin/dummy.txt'))
+            .toStrictEqual(false)
     })
-    this.test('preLoadService', (assert:Object):void => assert.ok(
-        Index.preLoadService({}).template.hasOwnProperty('render')))
-    this.test('shouldExit', async (assert:Object):Promise<void> => {
-        const done:Function = assert.async()
+    test('preLoadService', ():void =>
+        expect(Index.preLoadService({}).template).toHaveProperty('render')
+    )
+    test('shouldExit', async ():Promise<void> => {
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
         Index.entryFiles = {[`${targetFilePath}.tpl`]: null}
         Index.files = Tools.copy(Index.entryFiles)
         try {
-            assert.ok(await Tools.isFile(targetFilePath))
+            expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
             await Index.shouldExit({}, configuration)
         } catch (error) {
             console.error(error)
         }
-        assert.notOk(await Tools.isFile(targetFilePath))
-        done()
+        expect(await Tools.isFile(targetFilePath)).toStrictEqual(false)
     })
     // / endregion
     // / region helper
-    this.test('getEntryFiles', async (assert:Object):Promise<void> => {
-        const done:Function = assert.async()
+    test('getEntryFiles', async ():Promise<void> => {
         try {
-            assert.strictEqual(path.basename(Object.keys(
-                await Index.getEntryFiles(configuration, [])
-            )[0]), 'dummy.txt.ejs')
+            expect(
+                path.basename(Object.keys(await Index.getEntryFiles(
+                    configuration, []
+                ))[0])
+            ).toStrictEqual('dummy.txt.ejs')
         } catch (error) {
             console.error(error)
         }
-        done()
     })
-    this.test('render', async (assert:Object):Promise<void> => {
-        const done:Function = assert.async()
+    test('render', async ():Promise<void> => {
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         if (await Tools.isFile(targetFilePath))
             fileSystem.unlinkSync(targetFilePath)
@@ -98,9 +96,9 @@ registerTest(async function():Promise<void> {
         } catch (error) {
             console.error(error)
         }
-        assert.deepEqual(
-            result.mockupData, configuration.template.scope.plain.mockupData)
-        assert.ok(await Tools.isFile(targetFilePath))
+        expect(result.mockupData)
+            .toStrictEqual(configuration.template.scope.plain.mockupData)
+        expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
         /*
             NOTE: Uncomment following line to see resulting rendered dummy
             template.
@@ -110,24 +108,25 @@ registerTest(async function():Promise<void> {
             encoding: configuration.encoding}))
         */
         fileSystem.unlinkSync(targetFilePath)
-        done()
     })
-    this.test('renderFactory', async (assert:Object):Promise<void> => {
+    test('renderFactory', ():void => {
         const configuration:PlainObject = {
-            context: {path: './'}, template: {extensions: ['.ejs']}}
+            context: {path: './'}, template: {extensions: ['.ejs']}
+        }
         const renderFunction:Function = Index.renderFactory(
-            configuration, {b: 2}, {c: 3})
-        assert.strictEqual(typeof renderFunction, 'function')
+            configuration, {b: 2}, {c: 3}
+        )
+        expect(typeof renderFunction).toStrictEqual('function')
         try {
             renderFunction('a')
         } catch (error) {
-            assert.ok(true)
+            expect(true).toBeTruthy()
         }
         renderFunction('dummyPlugin/dummy.txt', {configuration, Tools})
     })
     // / endregion
     // endregion
-}, 'plain')
+})
 // region vim modline
 // vim: set tabstop=4 shiftwidth=4 expandtab:
 // vim: foldmethod=marker foldmarker=region,endregion:
