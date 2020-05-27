@@ -15,7 +15,9 @@
 */
 // region imports
 import {Mapping} from 'clientnode/type'
-import {Options as EJSOptions} from 'ejs'
+import {
+    Options as EJSOptions, TemplateFunction as EJSTemplateFunction
+} from 'ejs'
 import {
     Configuration as BaseConfiguration,
     PluginHandler as BasePluginHandler,
@@ -54,6 +56,8 @@ export type Scope = object & {
     options:RenderOptions;
     scope:Scope;
 }
+
+export type RenderFunction = (filePath:string, nestedLocals?:object) => string
 export type RuntimeScope = Scope & {
     plugins:Array<Plugin>;
 }
@@ -62,7 +66,9 @@ export type Services = BaseServices & {template:{
     render:Template['render'];
     renderFactory:Template['renderFactory'];
 }}
-export type TemplateFiles = Mapping<Function|null>
+export type TemplateFiles = Mapping<null>
+export type TemplateFunction = EJSTemplateFunction
+export type Templates = Mapping<TemplateFunction|null>
 export interface PluginHandler extends BasePluginHandler {
     /**
      * @param entryFiles - Mapping from template file path to compiled function

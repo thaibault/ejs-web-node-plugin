@@ -18,7 +18,7 @@
 */
 // region imports
 import Tools from 'clientnode'
-import {File, Mapping, PlainObject} from 'clientnode/type'
+import {Encoding, File, Mapping, PlainObject} from 'clientnode/type'
 import ejs from 'ejs'
 import {promises as fileSystem} from 'fs'
 import synchronousFileSystem from 'fs'
@@ -27,7 +27,15 @@ import {PluginAPI} from 'web-node'
 import {Plugin, PluginHandler} from 'web-node/type'
 
 import {
-    Configuration, RenderOptions, RuntimeScope, Scope, TemplateFiles, Services
+    Configuration,
+    RenderFunction,
+    RenderOptions,
+    RuntimeScope,
+    Scope,
+    TemplateFiles,
+    TemplateFunction,
+    Templates,
+    Services
 } from './type'
 // endregion
 /**
@@ -40,7 +48,7 @@ import {
  */
 export class Template implements PluginHandler {
     static entryFiles:TemplateFiles
-    static files:TemplateFiles = {}
+    static templates:Templates = {}
     // region api
     /**
      * Triggered hook when at least one plugin has a new configuration file and
@@ -85,11 +93,12 @@ export class Template implements PluginHandler {
         services:Services, configuration:Configuration
     ):Promise<Services> {
         const templateOutputRemoveingPromises:Array<Promise<string>> = []
-        for (const filePath in Template.files)
+        for (const filePath in Template.templates)
             if (
-                Template.files.hasOwnProperty(filePath) &&
+                Template.templates.hasOwnProperty(filePath) &&
                 !configuration.template.inPlaceReplacementPaths.includes(
-                    filePath)
+                    filePath
+                )
             )
                 templateOutputRemoveingPromises.push(new Promise(async (
                     resolve:Function, reject:Function
@@ -190,7 +199,7 @@ export class Template implements PluginHandler {
             Template.entryFiles[filePath] = null
         for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
-                Template.files[filePath] = Template.entryFiles[filePath]
+                Template.templates[filePath] = Template.entryFiles[filePath]
         return Template.entryFiles
     }
     /**
@@ -356,13 +365,15 @@ export class Template implements PluginHandler {
         configuration:Configuration,
         scope:Scope = {} as Scope,
         options:RenderOptions = {} as RenderOptions
-    ):Function {
+    ):RenderFunction {
         if (!('basePath' in scope))
             scope.basePath = configuration.context.path
         if (!('preCompiledTemplateFileExtensions' in options))
             options.preCompiledTemplateFileExtensions = ['.js']
         return (filePath:string, nestedLocals:object = {}):string => {
-            let nestedOptions:RenderOptions = Tools.copy(options)
+            type NestedOptions = RenderOptions & {encoding:Encoding}
+            let nestedOptions:NestedOptions =
+                Tools.copy(options) as NestedOptions
             delete nestedOptions.client
             nestedOptions = Tools.extend(
                 true,
@@ -395,8 +406,8 @@ export class Template implements PluginHandler {
                         filePath
                     ) ||
                     !(
-                        Template.files.hasOwnProperty(currentFilePath) &&
-                        Template.files[currentFilePath]
+                        Template.templates.hasOwnProperty(currentFilePath) &&
+                        Template.templates[currentFilePath]
                     )
                 )
                     if (
@@ -404,8 +415,8 @@ export class Template implements PluginHandler {
                             .includes(path.extname(currentFilePath))
                     )
                         try {
-                            Template.files[currentFilePath] = eval('require')(
-                                currentFilePath)
+                            Template.templates[currentFilePath] =
+                                eval('require')(currentFilePath)
                         } catch (error) {
                             throw new Error(
                                 'Error occurred during loading script module' +
@@ -428,9 +439,9 @@ export class Template implements PluginHandler {
                             )
                         }
                         try {
-                            Template.files[currentFilePath] = ejs.compile(
+                            Template.templates[currentFilePath] = ejs.compile(
                                 template, nestedOptions
-                            )
+                            ) as TemplateFunction
                         } catch (error) {
                             throw new Error(
                                 'Error occurred during compiling template ' +
@@ -442,7 +453,9 @@ export class Template implements PluginHandler {
                     }
                 let result:string = ''
                 try {
-                    result = Template.files[currentFilePath](nestedScope)
+                    result = (
+                        Template.templates[currentFilePath] as TemplateFunction
+                    )(nestedScope)
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {

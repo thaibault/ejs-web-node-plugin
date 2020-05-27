@@ -20,8 +20,8 @@ import fileSystem from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
 
-import {Configuration} from './type'
-import Index from './index'
+import {Configuration, Services} from './type'
+import Template from './index'
 // endregion
 describe('template', ():void => {
     // region mockup
@@ -40,7 +40,7 @@ describe('template', ():void => {
     test('postConfigurationLoaded', async ():Promise<void> => {
         configuration.template.renderAfterConfigurationUpdates = false
         try {
-            await Index.postConfigurationLoaded(
+            await Template.postConfigurationLoaded(
                 configuration, [], configuration, []
             )
         } catch (error) {
@@ -50,16 +50,17 @@ describe('template', ():void => {
             .toStrictEqual(false)
     })
     test('preLoadService', ():void =>
-        expect(Index.preLoadService({}).template).toHaveProperty('render')
+        expect(Template.preLoadService({} as Services).template)
+            .toHaveProperty('render')
     )
     test('shouldExit', async ():Promise<void> => {
         const targetFilePath:string = './dummyPlugin/dummy.txt'
         fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
-        Index.entryFiles = {[`${targetFilePath}.tpl`]: null}
-        Index.files = Tools.copy(Index.entryFiles)
+        Template.entryFiles = {[`${targetFilePath}.tpl`]: null}
+        Template.templates = Tools.copy(Template.entryFiles)
         try {
             expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
-            await Index.shouldExit({}, configuration)
+            await Template.shouldExit({}, configuration)
         } catch (error) {
             console.error(error)
         }
@@ -70,7 +71,7 @@ describe('template', ():void => {
     test('getEntryFiles', async ():Promise<void> => {
         try {
             expect(
-                path.basename(Object.keys(await Index.getEntryFiles(
+                path.basename(Object.keys(await Template.getEntryFiles(
                     configuration, []
                 ))[0])
             ).toStrictEqual('dummy.txt.ejs')
@@ -92,7 +93,7 @@ describe('template', ():void => {
         }
         let result:any
         try {
-            result = await Index.render(null, configuration, [])
+            result = await Template.render(null, configuration, [])
         } catch (error) {
             console.error(error)
         }
@@ -113,7 +114,7 @@ describe('template', ():void => {
         const configuration:PlainObject = {
             context: {path: './'}, template: {extensions: ['.ejs']}
         }
-        const renderFunction:Function = Index.renderFactory(
+        const renderFunction:Function = Template.renderFactory(
             configuration, {b: 2}, {c: 3}
         )
         expect(typeof renderFunction).toStrictEqual('function')
