@@ -99,7 +99,6 @@ registerTest(async function():Promise<void> {
             console.error(error)
         }
         assert.deepEqual(
-            // IgnoreTypeCheck
             result.mockupData, configuration.template.scope.plain.mockupData)
         assert.ok(await Tools.isFile(targetFilePath))
         /*

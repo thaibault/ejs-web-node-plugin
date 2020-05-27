@@ -22,8 +22,11 @@ import {
     Services as BaseServices,
     ServicePromises as BaseServicePromises
 } from 'web-node/type'
+
+import Template from './index'
 // endregion
 // region exports
+export type TemplateFiles = Mapping<Function|null>
 export type Configuration = BaseConfiguration & {
     template:{
         cache:boolean;
@@ -46,42 +49,42 @@ export type Configuration = BaseConfiguration & {
         };
     };
 }
-// TODO
 export type Services = BaseServices & {template:{
-    getEntryFiles:;
-    render:;
-    renderFactory:;
+    getEntryFiles:Template['getEntryFiles'];
+    render:Template['render'];
+    renderFactory:Template['renderFactory'];
 }}
 export interface PluginHandler extends BasePluginHandler {
-    // TODO
     /**
-     * @param entryFiles - .
-     * @param scope - .
+     * @param entryFiles - Mapping from template file path to compiled function
+     * or null.
+     * @param scope - Scope to render again templates.
      * @param configuration - Configuration object extended by each plugin
      * specific configuration.
      * @param plugins - Topological sorted list of plugins.
-     * @returns .
+     * @returns Given entry files.
      */
     preTemplateRender?(
-        entryFiles:,
-        scope:,
+        entryFiles:TemplateFiles,
+        scope:object,
         configuration:Configuration,
         plugins:Array<Plugin>
-    ):Promise<>
+    ):Promise<TemplateFiles>
     /**
-     * @param scope - .
-     * @param entryFiles - .
+     * @param scope - Scope to render again templates.
+     * @param entryFiles - Mapping from template file path to compiled function
+     * or null.
      * @param configuration - Configuration object extended by each plugin
      * specific configuration.
      * @param plugins - Topological sorted list of plugins.
-     * @returns .
+     * @returns Given scope.
      */
     postTemplateRender?(
-        scope:,
-        entryFiles:,
+        scope:object,
+        entryFiles:TemplateFiles,
         configuration:Configuration,
         plugins:Array<Plugin>
-    ):Promise<>
+    ):Promise<object>
 }
 // endregion
 // region vim modline
