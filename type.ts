@@ -22,9 +22,7 @@ import {
     Configuration as BaseConfiguration,
     Plugin,
     PluginHandler as BasePluginHandler,
-    Service as BaseService,
-    Services as BaseServices,
-    ServicePromises as BaseServicePromises
+    Services as BaseServices
 } from 'web-node/type'
 
 import Template from './index'
