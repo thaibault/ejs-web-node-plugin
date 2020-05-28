@@ -14,12 +14,13 @@
     endregion
 */
 // region imports
-import {Mapping} from 'clientnode/type'
+import {Mapping, PlainObject, Primitive} from 'clientnode/type'
 import {
     Options as EJSOptions, TemplateFunction as EJSTemplateFunction
 } from 'ejs'
 import {
     Configuration as BaseConfiguration,
+    Plugin,
     PluginHandler as BasePluginHandler,
     Service as BaseService,
     Services as BaseServices,
@@ -46,7 +47,7 @@ export type Configuration = BaseConfiguration & {
         scope:{
             evaluation:Mapping;
             execution:Mapping;
-            plain:Mapping;
+            plain:PlainObject<object|Primitive>;
         };
     };
 }
@@ -56,15 +57,21 @@ export type Scope = object & {
     options:RenderOptions;
     scope:Scope;
 }
-
 export type RenderFunction = (filePath:string, nestedLocals?:object) => string
 export type RuntimeScope = Scope & {
     plugins:Array<Plugin>;
 }
 export type Services = BaseServices & {template:{
-    getEntryFiles:Template['getEntryFiles'];
-    render:Template['render'];
-    renderFactory:Template['renderFactory'];
+    getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
+        Promise<TemplateFiles>;
+    render:(
+        givenScope:null|object,
+        configuration:Configuration,
+        plugins:Array<Plugin>
+    ) => Promise<Scope>;
+    renderFactory:(
+        configuration:Configuration, scope:Scope, options:RenderOptions
+    ) => RenderFunction;
 }}
 export type TemplateFiles = Mapping<null>
 export type TemplateFunction = EJSTemplateFunction

@@ -27,7 +27,7 @@
     "build": "webOptimizer build",
     "check": "yarn check:types; yarn lint",
     "check:types": "webOptimizer check:types",
-    "clear": "webOptimizer clear",
+    "clear": "webOptimizer clear && rimraf dummyPlugin/dummy.txt",
     "document": "webOptimizer document",
     "lint": "webOptimizer lint",
     "prepare": "yarn build",
@@ -116,7 +116,6 @@
       }
     }
   },
-  "sideEffects": false,
   "webOptimizer": {
     "targetTechnology": "node"
   }

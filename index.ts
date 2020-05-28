@@ -104,7 +104,8 @@ export class Template implements PluginHandler {
                     resolve:Function, reject:Function
                 ):Promise<void> => {
                     const newFilePath:string = filePath.substring(
-                        0, filePath.length - path.extname(filePath).length)
+                        0, filePath.length - path.extname(filePath).length
+                    )
                     let newFileExists:boolean = false
                     try {
                         newFileExists = await Tools.isFile(newFilePath)
@@ -223,7 +224,7 @@ export class Template implements PluginHandler {
         const now:Date = new Date()
         for (const type of ['evaluation', 'execution']) {
             const evaluation:Mapping = configuration.template.scope[
-                type as keyof Configuration['template']['scope']
+                type as 'evaluation'|'execution'
             ]
             for (const name in evaluation)
                 if (evaluation.hasOwnProperty(name)) {

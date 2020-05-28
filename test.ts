@@ -16,28 +16,41 @@
 // region imports
 import Tools from 'clientnode'
 import {PlainObject} from 'clientnode/type'
-import fileSystem from 'fs'
+import {promises as fileSystem} from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
 
-import {Configuration, Services} from './type'
 import Template from './index'
+import packageConfiguration from './package.json'
+import {Configuration, RenderOptions, Scope, Services} from './type'
 // endregion
 describe('template', ():void => {
     // region mockup
+    const targetFilePath:string = './dummyPlugin/dummy.txt'
     let configuration:Configuration
     beforeAll(async ():Promise<void> => {
         configuration = Tools.extend(
+            true,
             (await PluginAPI.loadAll(baseConfiguration)) as
                 unknown as
                 Configuration,
-            {server: {proxy: {ports: []}}}
+            {
+                plugin: {directories: {test: {path: './dummyPlugin'}}},
+                context: {path: './dummyPlugin'},
+                template: packageConfiguration.webNode.template
+            },
+            {template: {
+                options: {compileDebug: false, debug: false},
+                scope: {plain: {}}
+            }}
         )
     })
     // endregion
     // region tests
     // / region api
     test('postConfigurationLoaded', async ():Promise<void> => {
+        if (await Tools.isFile(targetFilePath))
+            await fileSystem.unlink(targetFilePath)
         configuration.template.renderAfterConfigurationUpdates = false
         try {
             await Template.postConfigurationLoaded(
@@ -46,25 +59,23 @@ describe('template', ():void => {
         } catch (error) {
             console.error(error)
         }
-        expect(await Tools.isFile('./dummyPlugin/dummy.txt'))
-            .toStrictEqual(false)
+        expect(await Tools.isFile(targetFilePath)).toStrictEqual(false)
     })
     test('preLoadService', ():void =>
         expect(Template.preLoadService({} as Services).template)
             .toHaveProperty('render')
     )
     test('shouldExit', async ():Promise<void> => {
-        const targetFilePath:string = './dummyPlugin/dummy.txt'
-        fileSystem.closeSync(fileSystem.openSync(targetFilePath, 'w'))
-        Template.entryFiles = {[`${targetFilePath}.tpl`]: null}
+        await (await fileSystem.open(targetFilePath, 'w')).close()
+        Template.entryFiles = {[`${targetFilePath}.ejs`]: null}
         Template.templates = Tools.copy(Template.entryFiles)
+        expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
         try {
-            expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
-            await Template.shouldExit({}, configuration)
+            await Template.shouldExit({} as Services, configuration)
         } catch (error) {
             console.error(error)
         }
-        expect(await Tools.isFile(targetFilePath)).toStrictEqual(false)
+        expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(false)
     })
     // / endregion
     // / region helper
@@ -80,9 +91,8 @@ describe('template', ():void => {
         }
     })
     test('render', async ():Promise<void> => {
-        const targetFilePath:string = './dummyPlugin/dummy.txt'
         if (await Tools.isFile(targetFilePath))
-            fileSystem.unlinkSync(targetFilePath)
+            await fileSystem.unlink(targetFilePath)
         configuration.template.scope.plain.mockupData = {
             a: 2,
             b: [1, 2, {a: 'test'}],
@@ -105,24 +115,20 @@ describe('template', ():void => {
             template.
         */
         /*
-        console.info(fileSystem.readFileSync(targetFilePath, {
-            encoding: configuration.encoding}))
+        console.info(await fileSystem.readFile(
+            targetFilePath, {encoding: configuration.encoding}
+        ))
         */
-        fileSystem.unlinkSync(targetFilePath)
+        await fileSystem.unlink(targetFilePath)
     })
     test('renderFactory', ():void => {
-        const configuration:PlainObject = {
-            context: {path: './'}, template: {extensions: ['.ejs']}
-        }
         const renderFunction:Function = Template.renderFactory(
-            configuration, {b: 2}, {c: 3}
+            Tools.extend(true, configuration, {context: {path: './'}}),
+            {b: 2} as unknown as Scope,
+            {c: 3} as unknown as RenderOptions
         )
         expect(typeof renderFunction).toStrictEqual('function')
-        try {
-            renderFunction('a')
-        } catch (error) {
-            expect(true).toBeTruthy()
-        }
+        expect(():Function => renderFunction('a')).toThrow()
         renderFunction('dummyPlugin/dummy.txt', {configuration, Tools})
     })
     // / endregion
