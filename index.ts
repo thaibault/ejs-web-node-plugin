@@ -149,17 +149,10 @@ export class Template implements PluginHandler {
                     NOTE: We want to ignore all known plugin locations which
                     aren't loaded.
                 */
-                for (const type in configuration.plugin.directories)
+                for (const directory of Object.values(configuration.plugin.directories))
                     if (
-                        configuration.plugin.directories.hasOwnProperty(
-                            type
-                        ) &&
-                        path.dirname(file.path) === path.resolve(
-                            configuration.plugin.directories[
-                                type as keyof Configuration['plugin'][
-                                    'directories']
-                            ].path
-                        ) &&
+                        path.dirname(file.path) ===
+                            path.resolve(directory.path) &&
                         !pluginPaths.includes(file.path)
                     )
                         return false
