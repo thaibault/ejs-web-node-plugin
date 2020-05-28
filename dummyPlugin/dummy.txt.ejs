@@ -1,4 +1,4 @@
-<%= configuration.name %>
+<%- configuration.name %>
 =========================
 
 Tests:
@@ -9,25 +9,23 @@ Tests:
 Configurations:
 ---------------
 
-<% for (var key in configuration) { %>
+<%_ for (var key in configuration) { _%>
     - "<%- key %>" -> <%- typeof configuration[key] === 'string' ? configuration[key] : Tools.represent(configuration[key]) %>
-<% } %>
+<%_ } _%>
 
-<%
+<%_
     list = []
     for (index = 0; index < 10; index++)
         list.push(index)
-%>
+_%>
 <%- list.join(', ') %>
 
 data = <%- Tools.convertCircularObjectToJSON(typeof mockupData === 'undefined' ? {} : mockupData) %>;
 
-<% let includedVariable = 1 %>
-
-<% include dummyInclude.txt %>
+<%_ let includedVariable = 1 _%>
 
 <%- include('dummyInclude.txt', {includedVariable: 2}) %>
 
-<% const name = 'Include' %>
+<%_ const name = 'Include' _%>
 
 <%- include(`dummy${name}.txt`, {includedVariable}) %>
