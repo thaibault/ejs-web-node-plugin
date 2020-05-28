@@ -24,8 +24,6 @@ import {
     PluginHandler as BasePluginHandler,
     Services as BaseServices
 } from 'web-node/type'
-
-import Template from './index'
 // endregion
 // region exports
 export type RenderOptions = EJSOptions & {
