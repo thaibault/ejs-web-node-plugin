@@ -78,14 +78,19 @@
         ".html.js",
         ".ejs"
       ],
-      "inPlaceReplacementPaths": [],
-      "locationsToIgnore": [
-        "backup",
-        "database",
-        "log",
-        "mockup",
-        "node_modules"
-      ],
+      "locations": {
+        "exclude": [
+          "backup",
+          "database",
+          "log",
+          "mockup",
+          "node_modules",
+          "src",
+          "source"
+        ],
+        "include": [],
+        "inPlaceReplacements": []
+      },
       "options": {
         "cache": true,
         "compileDebug": {

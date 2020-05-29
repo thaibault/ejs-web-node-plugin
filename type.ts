@@ -22,12 +22,8 @@ import {
     Configuration as BaseConfiguration,
     Plugin,
     PluginHandler as BasePluginHandler,
-    Service as BaseService,
-    Services as BaseServices,
-    ServicePromises as BaseServicePromises
+    Services as BaseServices
 } from 'web-node/type'
-
-import Template from './index'
 // endregion
 // region exports
 export type RenderOptions = EJSOptions & {
@@ -37,9 +33,12 @@ export type Configuration = BaseConfiguration & {
     template:{
         cache:boolean;
         cacheInPlaceReplacements:boolean;
-        extensions:Array<string>;
-        inPlaceReplacementPaths:Array<string>;
-        locationsToIgnore:Array<string>;
+        extensions:Array<string>|string;
+        locations:{
+            exclude:Array<string>|string;
+            include:Array<string>|string;
+            inPlaceReplacements:Array<string>|string;
+        };
         options:RenderOptions;
         renderAfterConfigurationUpdates:boolean;
         reloadEntryFiles:boolean;

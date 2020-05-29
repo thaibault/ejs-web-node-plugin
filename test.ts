@@ -15,7 +15,6 @@
 */
 // region imports
 import Tools from 'clientnode'
-import {PlainObject} from 'clientnode/type'
 import {promises as fileSystem} from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
