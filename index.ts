@@ -92,13 +92,13 @@ export class Template implements PluginHandler {
     static async shouldExit(
         services:Services, configuration:Configuration
     ):Promise<Services> {
+        const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
+            .concat(configuration.template.locations.inPlaceReplacements)
         const templateOutputRemoveingPromises:Array<Promise<string>> = []
         for (const filePath in Template.templates)
             if (
                 Template.templates.hasOwnProperty(filePath) &&
-                !configuration.template.inPlaceReplacementPaths.includes(
-                    filePath
-                )
+                !inPlaceReplacementPaths.includes(filePath)
             )
                 templateOutputRemoveingPromises.push(new Promise(async (
                     resolve:Function, reject:Function
@@ -137,59 +137,46 @@ export class Template implements PluginHandler {
     ):Promise<TemplateFiles> {
         if (Template.entryFiles && !configuration.template.reloadEntryFiles)
             return Template.entryFiles
+        const extensions:Array<string> =
+            ([] as Array<string>).concat(configuration.template.extensions)
         const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
             plugin.path
         )
         Template.entryFiles = {}
-        for (const file of (await Tools.walkDirectoryRecursively(
-            configuration.context.path, (file:File):false|void => {
-                if (file.name.startsWith('.'))
-                    return false
-                /*
-                    NOTE: We want to ignore all known plugin locations which
-                    aren't loaded.
-                */
-                for (const directory of Object.values(configuration.plugin.directories))
+        for (const location of PluginAPI.determineLocations(
+            configuration, configuration.template.locations.include
+        ))
+            await Tools.walkDirectoryRecursively(
+                location,
+                (file:File):false|void => {
                     if (
-                        path.dirname(file.path) ===
-                            path.resolve(directory.path) &&
-                        !pluginPaths.includes(file.path)
+                        file.name.startsWith('.') ||
+                        PluginAPI.isInLocations(
+                            configuration,
+                            plugins,
+                            file.path,
+                            configuration.template.locations.exclude
+                        )
                     )
                         return false
-                /*
-                    NOTE: We ignore absolute defined locations and relative
-                    defined in each loaded plugin location.
-                */
-                for (
-                    const locationToIgnore of
-                    configuration.template.locationsToIgnore
-                )
-                    if (locationToIgnore.startsWith('/')) {
-                        if (file.path.startsWith(path.join(
-                            configuration.context.path, locationToIgnore
-                        )))
-                            return false
-                    } else
-                        for (const pluginPath of pluginPaths)
-                            if (file.path.startsWith(path.resolve(
-                                pluginPath, locationToIgnore
-                            )))
-                                return false
-            })
-        ).filter((file:File):boolean|null =>
-            file.stats &&
-            file.stats.isFile() &&
-            /*
-                NOTE: We can't use "path.extname()" here since double
-                extensions like ".html.js" should be supported.
-            */
-            configuration.template.extensions
-                .filter((extension:string):boolean =>
-                    file.name.endsWith(extension)
-                ).length > 0
-        ))
-            Template.entryFiles[file.path] = null
-        for (const filePath of configuration.template.inPlaceReplacementPaths)
+                    if (
+                        file.stats &&
+                        file.stats.isFile() &&
+                        /*
+                            NOTE: We can't use "path.extname()" here since
+                            double extensions like ".html.js" should be
+                            supported.
+                        */
+                        extensions.some((extension:string):boolean =>
+                            file.name.endsWith(extension)
+                        )
+                    )
+                        Template.entryFiles[file.path] = null
+                }
+            )
+        for (const filePath of ([] as Array<string>)
+            .concat(configuration.template.locations.inPlaceReplacements)
+        )
             Template.entryFiles[filePath] = null
         for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
@@ -257,6 +244,8 @@ export class Template implements PluginHandler {
             await Template.getEntryFiles(configuration, plugins),
             scope
         )
+        const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
+            .concat(configuration.template.locations.inPlaceReplacements)
         const templateRenderingPromises:Array<Promise<string>> = []
         for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
@@ -265,8 +254,7 @@ export class Template implements PluginHandler {
                 ):Promise<void> => {
                     const currentScope:RuntimeScope = Tools.extend({}, scope)
                     const inPlace:boolean =
-                        configuration.template.inPlaceReplacementPaths
-                            .includes(filePath)
+                        inPlaceReplacemetPaths.includes(filePath)
                     const newFilePath:string = inPlace ?
                         filePath :
                         filePath.substring(
@@ -364,6 +352,8 @@ export class Template implements PluginHandler {
             scope.basePath = configuration.context.path
         if (!('preCompiledTemplateFileExtensions' in options))
             options.preCompiledTemplateFileExtensions = ['.js']
+        const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
+            .concat(configuration.template.locations.inPlaceReplacements)
         return (filePath:string, nestedLocals:object = {}):string => {
             type NestedOptions = RenderOptions & {encoding:Encoding}
             let nestedOptions:NestedOptions =
@@ -396,9 +386,7 @@ export class Template implements PluginHandler {
             if (currentFilePath) {
                 if (
                     configuration.template.reloadSourceContent &&
-                    !configuration.template.inPlaceReplacementPaths.includes(
-                        filePath
-                    ) ||
+                    !inPlaceReplacemetPaths.includes(filePath) ||
                     !(
                         Template.templates.hasOwnProperty(currentFilePath) &&
                         Template.templates[currentFilePath]
@@ -477,8 +465,8 @@ export class Template implements PluginHandler {
             throw new Error(
                 `Given template file "${nestedOptions.filename}" couldn't be` +
                 ' resolved (with known extensions: "' +
-                `${configuration.template.extensions.join('", "')}") in "` +
-                `${scope.basePath}".`
+                [''].concat(configuration.template.extensions).join('", "') +
+                `}") in "${scope.basePath}".`
             )
         }
     }
