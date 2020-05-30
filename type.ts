@@ -77,6 +77,7 @@ export type TemplateFunction = EJSTemplateFunction
 export type Templates = Mapping<TemplateFunction|null>
 export interface PluginHandler extends BasePluginHandler {
     /**
+     * Hook before evaluating a templates. Corresponding files can be modified.
      * @param entryFiles - Mapping from template file path to compiled function
      * or null.
      * @param scope - Scope to render again templates.
@@ -92,6 +93,7 @@ export interface PluginHandler extends BasePluginHandler {
         plugins:Array<Plugin>
     ):Promise<TemplateFiles>
     /**
+     * Hook after rendering templates. Corresponding 
      * @param scope - Scope to render again templates.
      * @param entryFiles - Mapping from template file path to compiled function
      * or null.
