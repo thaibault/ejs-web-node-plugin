@@ -23,7 +23,7 @@ import Template from './index'
 import packageConfiguration from './package.json'
 import {Configuration, RenderOptions, Scope, Services} from './type'
 // endregion
-describe('template', ():void => {
+describe('ejs', ():void => {
     // region mockup
     const targetFilePath:string = './dummyPlugin/dummy.txt'
     let configuration:Configuration
@@ -36,9 +36,9 @@ describe('template', ():void => {
             {
                 plugin: {directories: {test: {path: './dummyPlugin'}}},
                 context: {path: './dummyPlugin'},
-                template: packageConfiguration.webNode.template
+                ejs: packageConfiguration.webNode.ejs
             },
-            {template: {
+            {ejs: {
                 options: {compileDebug: false, debug: false},
                 scope: {plain: {}}
             }}
@@ -50,7 +50,7 @@ describe('template', ():void => {
     test('postConfigurationLoaded', async ():Promise<void> => {
         if (await Tools.isFile(targetFilePath))
             await fileSystem.unlink(targetFilePath)
-        configuration.template.renderAfterConfigurationUpdates = false
+        configuration.ejs.renderAfterConfigurationUpdates = false
         try {
             await Template.postConfigurationLoaded(
                 configuration, [], configuration, []
@@ -61,7 +61,7 @@ describe('template', ():void => {
         expect(await Tools.isFile(targetFilePath)).toStrictEqual(false)
     })
     test('preLoadService', ():void =>
-        expect(Template.preLoadService({} as Services).template)
+        expect(Template.preLoadService({} as Services).ejs)
             .toHaveProperty('render')
     )
     test('shouldExit', async ():Promise<void> => {
@@ -92,7 +92,7 @@ describe('template', ():void => {
     test('render', async ():Promise<void> => {
         if (await Tools.isFile(targetFilePath))
             await fileSystem.unlink(targetFilePath)
-        configuration.template.scope.plain.mockupData = {
+        configuration.ejs.scope.plain.mockupData = {
             a: 2,
             b: [1, 2, {a: 'test'}],
             c: {
@@ -107,7 +107,7 @@ describe('template', ():void => {
             console.error(error)
         }
         expect(result.mockupData)
-            .toStrictEqual(configuration.template.scope.plain.mockupData)
+            .toStrictEqual(configuration.ejs.scope.plain.mockupData)
         expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
         /*
             NOTE: Uncomment following line to see resulting rendered dummy

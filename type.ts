@@ -30,7 +30,7 @@ export type RenderOptions = EJSOptions & {
     preCompiledTemplateFileExtensions:Array<string>;
 }
 export type Configuration = BaseConfiguration & {
-    template:{
+    ejs:{
         cache:boolean;
         cacheInPlaceReplacements:boolean;
         extensions:Array<string>|string;
@@ -60,7 +60,7 @@ export type RenderFunction = (filePath:string, nestedLocals?:object) => string
 export type RuntimeScope = Scope & {
     plugins:Array<Plugin>;
 }
-export type Services = BaseServices & {template:{
+export type Services = BaseServices & {ejs:{
     getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
         Promise<TemplateFiles>;
     render:(
