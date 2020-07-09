@@ -1,16 +1,16 @@
 {
-  "name": "templatewebnodeplugin",
+  "name": "ejs-web-node-plugin",
   "version": "1.0.233",
   "license": "CC-BY-3.0",
-  "description": "A static template processor for webNode.",
-  "homepage": "https://torben.website/templateWebNodePlugin",
+  "description": "A static template processor for web-node.",
+  "homepage": "https://torben.website/ejs-web-node-plugin",
   "documentationWebsite": {
-    "name": "templateWebNodePlugin",
+    "name": "ejs-web-node-plugin",
     "trackingCode": "UA-40192634-19"
   },
   "keywords": [
-    "web",
     "backend",
+    "ejs",
     "static",
     "template"
   ],
@@ -21,23 +21,23 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/thaibault/templateWebNodePlugin.git"
+    "url": "https://github.com/thaibault/ejs-web-node-plugin.git"
   },
   "scripts": {
-    "build": "webOptimizer build",
+    "build": "weboptimizer build",
     "check": "yarn check:types; yarn lint",
-    "check:types": "webOptimizer check:types",
-    "clear": "webOptimizer clear && rimraf dummyPlugin/dummy.txt",
-    "document": "webOptimizer document",
-    "lint": "webOptimizer lint",
+    "check:types": "weboptimizer check:types",
+    "clear": "weboptimizer clear && rimraf dummyPlugin/dummy.txt",
+    "document": "weboptimizer document",
+    "lint": "weboptimizer lint",
     "prepare": "yarn build",
     "report:coverage": "nyc report --reporter=text-lcov | coveralls",
     "serve": "yarn build && webNode",
     "start": "yarn serve",
-    "test": "webOptimizer test",
+    "test": "weboptimizer test",
     "update": "yarn version --patch && yarn publish",
     "update:documentation": "documentationWebsite --log-level info",
-    "watch": "webOptimizer build --watch"
+    "watch": "weboptimizer build --watch"
   },
   "dependencies": {
     "ejs": "*"
@@ -71,7 +71,7 @@
   },
   "sideEffects": true,
   "webNode": {
-    "template": {
+    "ejs": {
       "cache": false,
       "cacheInPlaceReplacements": false,
       "extensions": [
