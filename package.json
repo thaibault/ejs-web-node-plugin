@@ -1,6 +1,6 @@
 {
   "name": "ejs-web-node-plugin",
-  "version": "1.0.235",
+  "version": "1.0.236",
   "license": "CC-BY-3.0",
   "description": "A static template processor for web-node.",
   "homepage": "https://torben.website/ejs-web-node-plugin",
