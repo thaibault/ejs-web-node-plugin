@@ -1,4 +1,4 @@
-// #!/usr/bin/env node
+// #!/usr/bin/env babel-node
 // -*- coding: utf-8 -*-
 /** @module ejs-web-node-plugin */
 'use strict'
