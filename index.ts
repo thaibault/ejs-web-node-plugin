@@ -160,8 +160,7 @@ export class Template implements PluginHandler {
                     )
                         return false
                     if (
-                        file.stats &&
-                        file.stats.isFile() &&
+                        file.stats?.isFile() &&
                         /*
                             NOTE: We can't use "path.extname()" here since
                             double extensions like ".html.js" should be
