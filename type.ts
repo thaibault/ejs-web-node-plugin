@@ -27,50 +27,50 @@ import {
 // endregion
 // region exports
 export type RenderOptions = EJSOptions & {
-    preCompiledTemplateFileExtensions:Array<string>;
+    preCompiledTemplateFileExtensions:Array<string>
 }
 export type Configuration = BaseConfiguration & {
     ejs:{
-        cache:boolean;
-        cacheInPlaceReplacements:boolean;
-        extensions:Array<string>|string;
+        cache:boolean
+        cacheInPlaceReplacements:boolean
+        extensions:Array<string>|string
         locations:{
-            exclude:Array<string>|string;
-            include:Array<string>|string;
-            inPlaceReplacements:Array<string>|string;
-        };
-        options:RenderOptions;
-        renderAfterConfigurationUpdates:boolean;
-        reloadEntryFiles:boolean;
-        reloadSourceContent:boolean;
+            exclude:Array<string>|string
+            include:Array<string>|string
+            inPlaceReplacements:Array<string>|string
+        }
+        options:RenderOptions
+        renderAfterConfigurationUpdates:boolean
+        reloadEntryFiles:boolean
+        reloadSourceContent:boolean
         scope:{
-            evaluation:Mapping;
-            execution:Mapping;
-            plain:PlainObject<object|Primitive>;
-        };
-    };
+            evaluation:Mapping
+            execution:Mapping
+            plain:PlainObject<object|Primitive>
+        }
+    }
 }
-export type Scope = object & {
-    basePath:string;
-    include:Function;
-    options:RenderOptions;
-    scope:Scope;
+export type Scope = Mapping<any> & {
+    basePath:string
+    include:Function
+    options:RenderOptions
+    scope:Scope
 }
 export type RenderFunction = (filePath:string, nestedLocals?:object) => string
 export type RuntimeScope = Scope & {
-    plugins:Array<Plugin>;
+    plugins:Array<Plugin>
 }
 export type Services = BaseServices & {ejs:{
     getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
-        Promise<TemplateFiles>;
+        Promise<TemplateFiles>
     render:(
         givenScope:null|object,
         configuration:Configuration,
         plugins:Array<Plugin>
-    ) => Promise<Scope>;
+    ) => Promise<Scope>
     renderFactory:(
         configuration:Configuration, scope:Scope, options:RenderOptions
-    ) => RenderFunction;
+    ) => RenderFunction
 }}
 export type TemplateFiles = Mapping<null>
 export type TemplateFunction = EJSTemplateFunction
