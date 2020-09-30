@@ -344,13 +344,13 @@ export class Template implements PluginHandler {
      */
     static renderFactory(
         configuration:Configuration,
-        scope:Scope = {} as Scope,
-        options:RenderOptions = {} as RenderOptions
+        scope:Scope = ({} as Scope),
+        options:RenderOptions = ({} as RenderOptions)
     ):RenderFunction {
         if (!('basePath' in scope))
             scope.basePath = configuration.context.path
         if (!('preCompiledTemplateFileExtensions' in options))
-            options.preCompiledTemplateFileExtensions = ['.js']
+            (options as RenderOptions).preCompiledTemplateFileExtensions = ['.js']
         const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
         return (filePath:string, nestedLocals:object = {}):string => {
