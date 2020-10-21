@@ -18,7 +18,9 @@
 */
 // region imports
 import Tools from 'clientnode'
-import {Encoding, File, Mapping, PlainObject} from 'clientnode/type'
+import {
+    Encoding, EvaluationResult, File, Mapping, PlainObject
+} from 'clientnode/type'
 import ejs from 'ejs'
 import {promises as fileSystem} from 'fs'
 import synchronousFileSystem from 'fs'
@@ -224,12 +226,26 @@ export class Template implements PluginHandler {
                         Tools,
                         webNodePath: __dirname
                     };
-                    (scope as Mapping<Function>)[name] = (new Function(
-                        ...Object.keys(currentScope),
-                        type === 'evaluation' ?
-                            `return ${evaluation[name]}` :
-                            evaluation[name]
-                    ))(...Object.values(currentScope))
+                    const evaluated:EvaluationResult = Tools.stringEvaluate(
+                        evaluation[name], currentScope, type === 'execution'
+                    )
+                    if (
+                        (evaluated as {compileError:string}).compileError ||
+                        (evaluated as {runtimeError:string}).runtimeError
+                    ) {
+                        console.warn(
+                            'Error occurred during processing given ' +
+                            `template scope configuration for "${name}": ` +
+                            (
+                                evaluated as {compileError:string}
+                            ).compileError ||
+                            (
+                                evaluated as {runtimeError:string}
+                            ).runtimeError
+                        )
+                    } else
+                        (scope as Mapping<Function>)[name] =
+                            (evaluated as {result:any}).result
                 }
         }
         const options:RenderOptions =
