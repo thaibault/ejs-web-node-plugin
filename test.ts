@@ -18,7 +18,6 @@ import Tools from 'clientnode'
 import {promises as fileSystem} from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
-
 import Template from './index'
 import packageConfiguration from './package.json'
 import {Configuration, RenderOptions, Scope, Services} from './type'
