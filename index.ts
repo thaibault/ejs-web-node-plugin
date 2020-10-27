@@ -229,23 +229,14 @@ export class Template implements PluginHandler {
                     const evaluated:EvaluationResult = Tools.stringEvaluate(
                         evaluation[name], currentScope, type === 'execution'
                     )
-                    if (
-                        (evaluated as {compileError:string}).compileError ||
-                        (evaluated as {runtimeError:string}).runtimeError
-                    ) {
+                    if (evaluated.error)
                         console.warn(
                             'Error occurred during processing given ' +
                             `template scope configuration for "${name}": ` +
-                            (
-                                evaluated as {compileError:string}
-                            ).compileError ||
-                            (
-                                evaluated as {runtimeError:string}
-                            ).runtimeError
+                            evaluated.error
                         )
-                    } else
-                        (scope as Mapping<Function>)[name] =
-                            (evaluated as {result:any}).result
+                    else
+                        (scope as Mapping<Function>)[name] = evaluated.result
                 }
         }
         const options:RenderOptions =
