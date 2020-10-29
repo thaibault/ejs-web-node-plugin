@@ -59,9 +59,7 @@
     "jsdoc": "*",
     "rimraf": "*",
     "web-node": "*",
-    "weboptimizer": "*",
-    "webpack": "*",
-    "webpack-cli": "*"
+    "weboptimizer": "*"
   },
   "peerDependencies": {
     "@babel/runtime": "*",
