@@ -119,6 +119,16 @@
     }
   },
   "webOptimizer": {
+    "module": {
+      "optimizer": {
+        "babelMinify": {
+          "module": {
+            "#": "Avoids \"TypeError: ./index.ts: Cannot read property 'length' of undefined\"",
+            "numericLiterals": false
+          }
+        }
+      }
+    },
     "targetTechnology": {
       "boilerplate": "node",
       "payload": "node"
