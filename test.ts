@@ -29,9 +29,7 @@ describe('ejs', ():void => {
     beforeAll(async ():Promise<void> => {
         configuration = Tools.extend(
             true,
-            (await PluginAPI.loadAll(baseConfiguration)) as
-                unknown as
-                Configuration,
+            (await PluginAPI.loadAll(baseConfiguration)).configuration,
             {
                 plugin: {directories: {test: {path: './dummyPlugin'}}},
                 context: {path: './dummyPlugin'},
