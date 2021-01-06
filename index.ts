@@ -281,14 +281,12 @@ export class Template implements PluginHandler {
                         )
                         resolve(newFilePath)
                     } else {
-                        const currentOptions:RenderOptions = Tools.extend(
-                            Tools.copy(options),
-                            {
-                                filename: path.relative(
-                                    currentScope.basePath, filePath
-                                )
-                            }
-                        )
+                        const currentOptions:RenderOptions = {
+                            ...Tools.copy(options),
+                            filename: path.relative(
+                                currentScope.basePath, filePath
+                            )
+                        }
                         if (!currentScope.options)
                             currentScope.options = currentOptions
                         if (!currentScope.plugins)
