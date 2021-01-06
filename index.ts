@@ -30,6 +30,7 @@ import {Plugin, PluginHandler} from 'web-node/type'
 
 import {
     Configuration,
+    GivenScope,
     RenderFunction,
     RenderOptions,
     RuntimeScope,
@@ -192,7 +193,7 @@ export class Template implements PluginHandler {
      * @returns A promise resolving to scope used for template rendering.
      */
     static async render(
-        givenScope:null|object,
+        givenScope:null|GivenScope,
         configuration:Configuration,
         plugins:Array<Plugin>
     ):Promise<Scope> {
@@ -209,7 +210,7 @@ export class Template implements PluginHandler {
             ]
             for (const name in evaluation)
                 if (evaluation.hasOwnProperty(name)) {
-                    const currentScope:object = {
+                    const currentScope:Mapping<any> = {
                         configuration: Tools.copy(configuration, -1, true),
                         currentPath: process.cwd(),
                         fileSystem,
@@ -225,7 +226,7 @@ export class Template implements PluginHandler {
                         template: Template,
                         Tools,
                         webNodePath: __dirname
-                    };
+                    }
                     const evaluated:EvaluationResult = Tools.stringEvaluate(
                         evaluation[name], currentScope, type === 'execution'
                     )
@@ -239,9 +240,8 @@ export class Template implements PluginHandler {
                         (scope as Mapping<Function>)[name] = evaluated.result
                 }
         }
-        const options:RenderOptions =
-            Tools.copy(configuration.ejs.options);
-        (scope as Mapping<Function>).include =
+        const options:RenderOptions = Tools.copy(configuration.ejs.options)
+        ;(scope as Mapping<Function>).include =
             Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
             'preTemplateRender',
@@ -258,7 +258,8 @@ export class Template implements PluginHandler {
                 templateRenderingPromises.push(new Promise(async (
                     resolve:Function, reject:Function
                 ):Promise<void> => {
-                    const currentScope:RuntimeScope = Tools.extend({}, scope)
+                    const currentScope:RuntimeScope =
+                        {...scope} as RuntimeScope
                     const inPlace:boolean =
                         inPlaceReplacemetPaths.includes(filePath)
                     const newFilePath:string = inPlace ?
@@ -281,19 +282,20 @@ export class Template implements PluginHandler {
                         resolve(newFilePath)
                     } else {
                         const currentOptions:RenderOptions = Tools.extend(
-                            {},
-                            options,
+                            Tools.copy(options),
                             {
                                 filename: path.relative(
-                                    currentScope.basePath, filePath)
+                                    currentScope.basePath, filePath
+                                )
                             }
                         )
-                        if (!('options' in currentScope))
+                        if (!currentScope.options)
                             currentScope.options = currentOptions
-                        if (!('plugins' in currentScope))
+                        if (!currentScope.plugins)
                             currentScope.plugins = plugins
                         const factory:Function = Template.renderFactory(
-                            configuration, currentScope, currentOptions)
+                            configuration, currentScope, currentOptions
+                        )
                         let result:string = ''
                         try {
                             result = factory(filePath)
@@ -351,16 +353,16 @@ export class Template implements PluginHandler {
      */
     static renderFactory(
         configuration:Configuration,
-        scope:Scope = ({} as Scope),
-        options:RenderOptions = ({} as RenderOptions)
+        scope:GivenScope = {},
+        options:RenderOptions = {}
     ):RenderFunction {
-        if (!('basePath' in scope))
+        if (!scope.basePath)
             scope.basePath = configuration.context.path
-        if (!('preCompiledTemplateFileExtensions' in options))
-            (options as RenderOptions).preCompiledTemplateFileExtensions = ['.js']
+        if (!options.preCompiledTemplateFileExtensions)
+            options.preCompiledTemplateFileExtensions = ['.js']
         const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
-        return (filePath:string, nestedLocals:object = {}):string => {
+        return (filePath:string, nestedLocals:GivenScope = {}):string => {
             type NestedOptions = RenderOptions & {encoding:Encoding}
             let nestedOptions:NestedOptions =
                 Tools.copy(options) as NestedOptions
@@ -369,11 +371,12 @@ export class Template implements PluginHandler {
                 true,
                 {encoding: 'utf-8'},
                 nestedOptions,
-                (nestedLocals as {options:RenderOptions}).options || {}
+                nestedLocals.options || {}
             )
-            const nestedScope:Scope = Tools.extend({}, scope)
-            filePath = path.resolve(scope.basePath, filePath)
-            nestedOptions.filename = path.relative(scope.basePath, filePath)
+            const nestedScope:Scope = {...scope} as Scope
+            filePath = path.resolve((scope as Scope).basePath, filePath)
+            nestedOptions.filename =
+                path.relative((scope as Scope).basePath, filePath)
             nestedScope.basePath = path.dirname(filePath)
             nestedScope.include = Template.renderFactory(
                 configuration, nestedScope, nestedOptions
@@ -397,7 +400,7 @@ export class Template implements PluginHandler {
                     )
                 )
                     if (
-                        nestedOptions.preCompiledTemplateFileExtensions
+                        nestedOptions.preCompiledTemplateFileExtensions!
                             .includes(path.extname(currentFilePath))
                     )
                         try {
