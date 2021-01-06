@@ -14,7 +14,9 @@
     endregion
 */
 // region imports
-import {Mapping, PlainObject, Primitive} from 'clientnode/type'
+import {
+    Mapping, PlainObject, Primitive, RecursivePartial
+} from 'clientnode/type'
 import {
     Options as EJSOptions, TemplateFunction as EJSTemplateFunction
 } from 'ejs'
@@ -27,7 +29,7 @@ import {
 // endregion
 // region exports
 export type RenderOptions = EJSOptions & {
-    preCompiledTemplateFileExtensions:Array<string>
+    preCompiledTemplateFileExtensions?:Array<string>
 }
 export type Configuration = BaseConfiguration & {
     ejs:{
@@ -56,6 +58,7 @@ export type Scope = Mapping<any> & {
     options:RenderOptions
     scope:Scope
 }
+export type GivenScope = RecursivePartial<Scope>
 export type RenderFunction = (filePath:string, nestedLocals?:object) => string
 export type RuntimeScope = Scope & {
     plugins:Array<Plugin>
@@ -64,12 +67,12 @@ export type Services = BaseServices & {ejs:{
     getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
         Promise<TemplateFiles>
     render:(
-        givenScope:null|object,
+        givenScope:null|GivenScope,
         configuration:Configuration,
         plugins:Array<Plugin>
     ) => Promise<Scope>
     renderFactory:(
-        configuration:Configuration, scope:Scope, options:RenderOptions
+        configuration:Configuration, scope:GivenScope, options:RenderOptions
     ) => RenderFunction
 }}
 export type TemplateFiles = Mapping<null>
