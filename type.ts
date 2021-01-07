@@ -89,7 +89,7 @@ export interface PluginHandler extends BasePluginHandler {
      * @param plugins - Topological sorted list of plugins.
      * @returns Given entry files.
      */
-    preTemplateRender?(
+    preEJSRender?(
         entryFiles:TemplateFiles,
         scope:Scope,
         configuration:Configuration,
@@ -105,7 +105,7 @@ export interface PluginHandler extends BasePluginHandler {
      * @param plugins - Topological sorted list of plugins.
      * @returns Given scope.
      */
-    postTemplateRender?(
+    postEJSRender?(
         scope:Scope,
         entryFiles:TemplateFiles,
         configuration:Configuration,
