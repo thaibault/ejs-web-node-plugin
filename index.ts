@@ -244,7 +244,7 @@ export class Template implements PluginHandler {
         ;(scope as Mapping<Function>).include =
             Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
-            'preTemplateRender',
+            'preEJSRender',
             plugins,
             configuration,
             await Template.getEntryFiles(configuration, plugins),
@@ -335,7 +335,7 @@ export class Template implements PluginHandler {
                 }))
         await Promise.all(templateRenderingPromises)
         return await PluginAPI.callStack(
-            'postTemplateRender',
+            'postEJSRender',
             plugins,
             configuration,
             scope,
