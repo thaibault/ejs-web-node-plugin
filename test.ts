@@ -29,7 +29,9 @@ describe('ejs', ():void => {
     beforeAll(async ():Promise<void> => {
         configuration = Tools.extend(
             true,
-            (await PluginAPI.loadAll(baseConfiguration)).configuration,
+            Tools.copy(
+                (await PluginAPI.loadAll(baseConfiguration)).configuration
+            ),
             {
                 plugin: {directories: {test: {path: './dummyPlugin'}}},
                 context: {path: './dummyPlugin'},
@@ -119,7 +121,9 @@ describe('ejs', ():void => {
     })
     test('renderFactory', ():void => {
         const renderFunction:Function = Template.renderFactory(
-            Tools.extend(true, configuration, {context: {path: './'}}),
+            Tools.extend(
+                true, Tools.copy(configuration), {context: {path: './'}}
+            ),
             {b: 2} as unknown as Scope,
             {c: 3} as unknown as RenderOptions
         )
