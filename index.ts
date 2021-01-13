@@ -204,10 +204,8 @@ export class Template implements PluginHandler {
             givenScope || {}
         )
         const now:Date = new Date()
-        for (const type of ['evaluation', 'execution']) {
-            const evaluation:Mapping = configuration.ejs.scope[
-                type as 'evaluation'|'execution'
-            ]
+        for (const type of ['evaluation', 'execution'] as const) {
+            const evaluation:Mapping = configuration.ejs.scope[type]
             for (const name in evaluation)
                 if (evaluation.hasOwnProperty(name)) {
                     const currentScope:Mapping<any> = {
