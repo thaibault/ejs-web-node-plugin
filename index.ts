@@ -288,9 +288,11 @@ export class Template implements PluginHandler {
                             currentScope.options = currentOptions
                         if (!currentScope.plugins)
                             currentScope.plugins = plugins
+
                         const render:RenderFunction = Template.renderFactory(
                             configuration, currentScope, currentOptions
                         )
+
                         let result:string = ''
                         try {
                             result = render(filePath)
@@ -375,11 +377,12 @@ export class Template implements PluginHandler {
 
             const scope:Scope = {...givenScope} as Scope
             scope.basePath = path.dirname(filePath)
-            scope.include =
-                Template.renderFactory(configuration, scope, options)
             scope.options = options
             scope.scope = scope
             Tools.extend(scope, nestedLocals)
+
+            scope.include =
+                Template.renderFactory(configuration, scope, options)
 
             const originalScopeNames:Array<string> = Object.keys(scope)
             const scopeNames:Array<string> = originalScopeNames.map(
@@ -425,9 +428,9 @@ export class Template implements PluginHandler {
                             )
                         } catch (error) {
                             throw new Error(
-                                'Error occurred during loading template ' +
-                                `file "${currentFilePath}" from file system:` +
-                                ` ${Tools.represent(error)}`
+                                'Error occurred during loading template file' +
+                                ` "${currentFilePath}" from file system: ` +
+                                Tools.represent(error)
                             )
                         }
                         if (!givenOptions._with)
@@ -442,8 +445,10 @@ export class Template implements PluginHandler {
                                 isn't enabled
                             */
                             if (!givenOptions._with) {
-                                const localsName:string =
+                                let localsName:string =
                                     givenOptions.localsName || 'locals'
+                                while (scopeNames.includes(localsName))
+                                    localsName = `_${localsName}`
                                 Template.templates[currentFilePath] =
                                     new Function(
                                         ...scopeNames,
@@ -466,6 +471,7 @@ export class Template implements PluginHandler {
                         }
                     }
                 let result:string = ''
+            console.log('TODO', scopeNames, Template.templates[currentFilePath].toString().substring(0, 1000))
                 try {
                     /*
                         NOTE: We want to be ensure to have same ordering as we
