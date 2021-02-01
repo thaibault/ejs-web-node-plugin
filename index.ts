@@ -203,6 +203,7 @@ export class Template implements PluginHandler {
             configuration.ejs.scope.plain,
             givenScope || {}
         )
+
         const now:Date = new Date()
         for (const type of ['evaluation', 'execution'] as const) {
             const evaluation:Mapping = configuration.ejs.scope[type]
@@ -239,10 +240,8 @@ export class Template implements PluginHandler {
                 }
         }
         const options:RenderOptions = Tools.copy(configuration.ejs.options)
-        ;(scope as Mapping<Function>).include =
-            Template.renderFactory(configuration, scope, options)
         Template.entryFiles = await PluginAPI.callStack(
-            'preEJSRender',
+            'preEjsRender',
             plugins,
             configuration,
             await Template.getEntryFiles(configuration, plugins),
@@ -289,12 +288,12 @@ export class Template implements PluginHandler {
                             currentScope.options = currentOptions
                         if (!currentScope.plugins)
                             currentScope.plugins = plugins
-                        const factory:Function = Template.renderFactory(
+                        const render:RenderFunction = Template.renderFactory(
                             configuration, currentScope, currentOptions
                         )
                         let result:string = ''
                         try {
-                            result = factory(filePath)
+                            result = render(filePath)
                         } catch (error) {
                             if (inPlace) {
                                 console.warn(
@@ -333,7 +332,7 @@ export class Template implements PluginHandler {
                 }))
         await Promise.all(templateRenderingPromises)
         return await PluginAPI.callStack(
-            'postEJSRender',
+            'postEjsRender',
             plugins,
             configuration,
             scope,
@@ -343,43 +342,51 @@ export class Template implements PluginHandler {
     /**
      * Generates a render function with given base scope to resolve includes.
      * @param configuration - Configuration object.
-     * @param scope - Base scope to extend from.
-     * @param options - Render options to use.
+     * @param givenScope - Base scope to extend from.
+     * @param givenOptions - Render options to use.
      * @returns Render function.
      */
     static renderFactory(
         configuration:Configuration,
-        scope:GivenScope = {},
-        options:RenderOptions = {}
+        givenScope:GivenScope = {},
+        givenOptions:RenderOptions = {}
     ):RenderFunction {
-        if (!scope.basePath)
-            scope.basePath = configuration.context.path
-        if (!options.preCompiledTemplateFileExtensions)
-            options.preCompiledTemplateFileExtensions = ['.js']
+        if (!givenScope.basePath)
+            givenScope.basePath = configuration.context.path
+        if (!givenOptions.preCompiledTemplateFileExtensions)
+            givenOptions.preCompiledTemplateFileExtensions = ['.js']
         const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
+
         return (filePath:string, nestedLocals:GivenScope = {}):string => {
             type NestedOptions = RenderOptions & {encoding:Encoding}
-            let nestedOptions:NestedOptions =
-                Tools.copy(options) as NestedOptions
-            delete nestedOptions.client
-            nestedOptions = Tools.extend(
+            givenOptions.encoding = givenOptions.encoding || 'utf-8'
+            let options:NestedOptions =
+                Tools.copy(givenOptions) as NestedOptions
+            delete options.client
+            options = Tools.extend(
                 true,
-                {encoding: 'utf-8'},
-                nestedOptions,
+                options,
                 nestedLocals.options || {}
             )
-            const nestedScope:Scope = {...scope} as Scope
-            filePath = path.resolve((scope as Scope).basePath, filePath)
-            nestedOptions.filename =
-                path.relative((scope as Scope).basePath, filePath)
-            nestedScope.basePath = path.dirname(filePath)
-            nestedScope.include = Template.renderFactory(
-                configuration, nestedScope, nestedOptions
+            filePath = path.resolve((givenScope as Scope).basePath, filePath)
+            options.filename =
+                path.relative((givenScope as Scope).basePath, filePath)
+
+            const scope:Scope = {...givenScope} as Scope
+            scope.basePath = path.dirname(filePath)
+            scope.include =
+                Template.renderFactory(configuration, scope, options)
+            scope.options = options
+            scope.scope = scope
+            Tools.extend(scope, nestedLocals)
+
+            const originalScopeNames:Array<string> = Object.keys(scope)
+            const scopeNames:Array<string> = originalScopeNames.map(
+                (name:string):string =>
+                    Tools.stringConvertToValidVariableName(name)
             )
-            nestedScope.options = nestedOptions
-            nestedScope.scope = nestedScope
-            Tools.extend(nestedScope, nestedLocals)
+
             let currentFilePath:null|string = null
             for (const extension of [''].concat(configuration.ejs.extensions))
                 if (Tools.isFileSync(filePath + extension)) {
@@ -396,7 +403,7 @@ export class Template implements PluginHandler {
                     )
                 )
                     if (
-                        nestedOptions.preCompiledTemplateFileExtensions!
+                        options.preCompiledTemplateFileExtensions!
                             .includes(path.extname(currentFilePath))
                     )
                         try {
@@ -414,7 +421,7 @@ export class Template implements PluginHandler {
                         try {
                             template = synchronousFileSystem.readFileSync(
                                 currentFilePath,
-                                {encoding: nestedOptions.encoding}
+                                {encoding: givenOptions.encoding}
                             )
                         } catch (error) {
                             throw new Error(
@@ -423,29 +430,59 @@ export class Template implements PluginHandler {
                                 ` ${Tools.represent(error)}`
                             )
                         }
+                        if (!givenOptions._with)
+                            // NOTE: Needed to manipulate code after compiling.
+                            givenOptions.client = true
                         try {
-                            Template.templates[currentFilePath] = ejs.compile(
-                                template, nestedOptions
-                            ) as TemplateFunction
+                            Template.templates[currentFilePath] =
+                                ejs.compile(template, givenOptions) as
+                                    TemplateFunction
+                            /*
+                                Provide all scope names when "_with" options
+                                isn't enabled
+                            */
+                            if (!givenOptions._with) {
+                                const localsName:string =
+                                    givenOptions.localsName || 'locals'
+                                Template.templates[currentFilePath] =
+                                    new Function(
+                                        ...scopeNames,
+                                        localsName,
+                                        'return ' +
+                                        Template.templates[currentFilePath]!
+                                            .toString() +
+                                        `(${localsName},` +
+                                        `${localsName}.escapeFn,include,` +
+                                        `${localsName}.rethrow)`
+                                    ) as TemplateFunction
+                            }
                         } catch (error) {
                             throw new Error(
                                 'Error occurred during compiling template ' +
                                 `file "${currentFilePath}" with base path "` +
-                                `${nestedScope.basePath}": ` +
+                                `${scope.basePath}": ` +
                                 Tools.represent(error)
                             )
                         }
                     }
                 let result:string = ''
                 try {
-                    result = (
-                        Template.templates[currentFilePath] as TemplateFunction
-                    )(nestedScope)
+                    /*
+                        NOTE: We want to be ensure to have same ordering as we
+                        have for the scope names and to call internal
+                        registered getter by retrieving values. So simple using
+                        "...Object.values(scope)" is not appreciate here.
+                    */
+                    result = Template.templates[currentFilePath]!(
+                        ...originalScopeNames
+                            .map((name:string):any => scope[name])
+                            .concat(options._with ? [] : scope)
+                    )
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {
                         scopeDescription =
-                            `scope ${Tools.represent(nestedScope)} against`
+                            `scope ${Tools.represent(scope)} against`
                     } catch (error) {}
                     throw new Error(
                         'Error occurred during running template ' +
@@ -453,6 +490,7 @@ export class Template implements PluginHandler {
                         Tools.represent(error)
                     )
                 }
+
                 return result
                     .replace(
                         new RegExp(
@@ -474,10 +512,10 @@ export class Template implements PluginHandler {
                     )
             }
             throw new Error(
-                `Given template file "${nestedOptions.filename}" couldn't be` +
-                ' resolved (with known extensions: "' +
+                `Given template file "${options.filename}" couldn't be ` +
+                'resolved (with known extensions: "' +
                 [''].concat(configuration.ejs.extensions).join('", "') +
-                `}") in "${scope.basePath}".`
+                `}") in "${givenScope.basePath}".`
             )
         }
     }

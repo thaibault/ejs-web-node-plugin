@@ -14,8 +14,8 @@ Configurations:
 <%_ } _%>
 
 <%_
-    list = []
-    for (index = 0; index < 10; index++)
+    const list = []
+    for (let index = 0; index < 10; index++)
         list.push(index)
 _%>
 <%- list.join(', ') %>

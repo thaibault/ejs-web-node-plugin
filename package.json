@@ -96,7 +96,10 @@
         },
         "debug": {
           "__evaluate__": "self.debug"
-        }
+        },
+        "localsName": "scope",
+        "strict": true,
+        "_with": false
       },
       "renderAfterConfigurationUpdates": false,
       "reloadEntryFiles": true,

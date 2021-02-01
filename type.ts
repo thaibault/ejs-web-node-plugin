@@ -15,7 +15,7 @@
 */
 // region imports
 import {
-    Mapping, PlainObject, Primitive, RecursivePartial
+    Encoding, Mapping, PlainObject, Primitive, RecursivePartial
 } from 'clientnode/type'
 import {
     Options as EJSOptions, TemplateFunction as EJSTemplateFunction
@@ -29,6 +29,7 @@ import {
 // endregion
 // region exports
 export type RenderOptions = EJSOptions & {
+    encoding?:Encoding
     preCompiledTemplateFileExtensions?:Array<string>
 }
 export type Configuration = BaseConfiguration & {
@@ -77,7 +78,7 @@ export type Services = BaseServices & {ejs:{
 }}
 export type TemplateFiles = Mapping<null>
 export type TemplateFunction = EJSTemplateFunction
-export type Templates = Mapping<TemplateFunction|null>
+export type Templates = Mapping<null|TemplateFunction>
 export interface PluginHandler extends BasePluginHandler {
     /**
      * Hook before evaluating a templates. Corresponding files can be modified.
@@ -89,7 +90,7 @@ export interface PluginHandler extends BasePluginHandler {
      * @param plugins - Topological sorted list of plugins.
      * @returns Given entry files.
      */
-    preEJSRender?(
+    preEjsRender?(
         entryFiles:TemplateFiles,
         scope:Scope,
         configuration:Configuration,
@@ -105,7 +106,7 @@ export interface PluginHandler extends BasePluginHandler {
      * @param plugins - Topological sorted list of plugins.
      * @returns Given scope.
      */
-    postEJSRender?(
+    postEjsRender?(
         scope:Scope,
         entryFiles:TemplateFiles,
         configuration:Configuration,
