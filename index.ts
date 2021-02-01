@@ -288,9 +288,11 @@ export class Template implements PluginHandler {
                             currentScope.options = currentOptions
                         if (!currentScope.plugins)
                             currentScope.plugins = plugins
+
                         const render:RenderFunction = Template.renderFactory(
                             configuration, currentScope, currentOptions
                         )
+
                         let result:string = ''
                         try {
                             result = render(filePath)
@@ -355,14 +357,15 @@ export class Template implements PluginHandler {
             givenScope.basePath = configuration.context.path
         if (!givenOptions.preCompiledTemplateFileExtensions)
             givenOptions.preCompiledTemplateFileExtensions = ['.js']
+        if (!givenOptions.encoding)
+            givenOptions.encoding = 'utf-8'
         const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
 
         return (filePath:string, nestedLocals:GivenScope = {}):string => {
             type NestedOptions = RenderOptions & {encoding:Encoding}
-            givenOptions.encoding = givenOptions.encoding || 'utf-8'
-            let options:NestedOptions =
-                Tools.copy(givenOptions) as NestedOptions
+            let options:NestedOptions = Tools.copy(givenOptions) as
+                NestedOptions
             delete options.client
             options = Tools.extend(
                 true,
@@ -375,11 +378,12 @@ export class Template implements PluginHandler {
 
             const scope:Scope = {...givenScope} as Scope
             scope.basePath = path.dirname(filePath)
-            scope.include =
-                Template.renderFactory(configuration, scope, options)
             scope.options = options
             scope.scope = scope
             Tools.extend(scope, nestedLocals)
+
+            scope.include =
+                Template.renderFactory(configuration, scope, options)
 
             const originalScopeNames:Array<string> = Object.keys(scope)
             const scopeNames:Array<string> = originalScopeNames.map(
@@ -421,29 +425,33 @@ export class Template implements PluginHandler {
                         try {
                             template = synchronousFileSystem.readFileSync(
                                 currentFilePath,
-                                {encoding: givenOptions.encoding}
+                                {encoding: options.encoding}
                             )
                         } catch (error) {
                             throw new Error(
-                                'Error occurred during loading template ' +
-                                `file "${currentFilePath}" from file system:` +
-                                ` ${Tools.represent(error)}`
+                                'Error occurred during loading template file' +
+                                ` "${currentFilePath}" from file system: ` +
+                                Tools.represent(error)
                             )
                         }
-                        if (!givenOptions._with)
+
+                        if (options.strict || !options._with)
                             // NOTE: Needed to manipulate code after compiling.
-                            givenOptions.client = true
+                            options.client = true
+
                         try {
                             Template.templates[currentFilePath] =
-                                ejs.compile(template, givenOptions) as
+                                ejs.compile(template, options) as
                                     TemplateFunction
                             /*
                                 Provide all scope names when "_with" options
                                 isn't enabled
                             */
-                            if (!givenOptions._with) {
-                                const localsName:string =
-                                    givenOptions.localsName || 'locals'
+                            if (options.strict || !options._with) {
+                                let localsName:string =
+                                    options.localsName || 'locals'
+                                while (scopeNames.includes(localsName))
+                                    localsName = `_${localsName}`
                                 Template.templates[currentFilePath] =
                                     new Function(
                                         ...scopeNames,
@@ -473,11 +481,13 @@ export class Template implements PluginHandler {
                         registered getter by retrieving values. So simple using
                         "...Object.values(scope)" is not appreciate here.
                     */
-                    result = Template.templates[currentFilePath]!(
-                        ...originalScopeNames
-                            .map((name:string):any => scope[name])
-                            .concat(options._with ? [] : scope)
-                    )
+                    result = !options.strict && options._with ?
+                        Template.templates[currentFilePath]!(scope) :
+                        Template.templates[currentFilePath]!(
+                            ...originalScopeNames
+                                .map((name:string):any => scope[name])
+                                .concat(options._with ? [] : scope)
+                        )
                 } catch (error) {
                     let scopeDescription:string = ''
                     try {
