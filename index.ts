@@ -239,7 +239,6 @@ export class Template implements PluginHandler {
                         (scope as Mapping<Function>)[name] = evaluated.result
                 }
         }
-        const options:RenderOptions = Tools.copy(configuration.ejs.options)
         Template.entryFiles = await PluginAPI.callStack(
             'preEjsRender',
             plugins,
@@ -279,7 +278,7 @@ export class Template implements PluginHandler {
                         resolve(newFilePath)
                     } else {
                         const currentOptions:RenderOptions = {
-                            ...Tools.copy(options),
+                            ...Tools.copy(configuration.ejs.options),
                             filename: path.relative(
                                 currentScope.basePath, filePath
                             )
@@ -482,7 +481,9 @@ export class Template implements PluginHandler {
                         "...Object.values(scope)" is not appreciate here.
                     */
                     result = !options.strict && options._with ?
-                        Template.templates[currentFilePath]!(scope) :
+                        (Template.templates[currentFilePath] as Function)(
+                            scope, scope.escapeFn, scope.include
+                        ) :
                         Template.templates[currentFilePath]!(
                             ...originalScopeNames
                                 .map((name:string):any => scope[name])
