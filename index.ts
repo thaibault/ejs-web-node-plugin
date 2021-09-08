@@ -44,6 +44,7 @@ import {
 /**
  * Renders all templates again configuration object and re-renders them after
  * configurations changes.
+ *
  * @property static:entryFiles - Mapping from auto determined file paths to
  * there compiled template function.
  * @property static:files - Mapping from determined file paths to there
@@ -140,11 +141,13 @@ export class Template implements PluginHandler {
     ):Promise<TemplateFiles> {
         if (Template.entryFiles && !configuration.ejs.reloadEntryFiles)
             return Template.entryFiles
+
         const extensions:Array<string> =
             ([] as Array<string>).concat(configuration.ejs.extensions)
         const pluginPaths:Array<string> = plugins.map((plugin:Plugin):string =>
             plugin.path
         )
+
         Template.entryFiles = {}
         for (const location of PluginAPI.determineLocations(
             configuration, configuration.ejs.locations.include
@@ -162,6 +165,7 @@ export class Template implements PluginHandler {
                         )
                     )
                         return false
+
                     if (
                         file.stats?.isFile() &&
                         /*
@@ -176,13 +180,16 @@ export class Template implements PluginHandler {
                         Template.entryFiles[file.path] = null
                 }
             )
+
         for (const filePath of ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
         )
             Template.entryFiles[filePath] = null
+
         for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
                 Template.templates[filePath] = Template.entryFiles[filePath]
+
         return Template.entryFiles
     }
     /**
@@ -239,6 +246,7 @@ export class Template implements PluginHandler {
                         (scope as Mapping<Function>)[name] = evaluated.result
                 }
         }
+
         Template.entryFiles = await PluginAPI.callStack(
             'preEjsRender',
             plugins,
@@ -246,9 +254,11 @@ export class Template implements PluginHandler {
             await Template.getEntryFiles(configuration, plugins),
             scope
         )
+
         const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
         const templateRenderingPromises:Array<Promise<string>> = []
+
         for (const filePath in Template.entryFiles)
             if (Template.entryFiles.hasOwnProperty(filePath))
                 templateRenderingPromises.push(new Promise(async (
@@ -263,6 +273,7 @@ export class Template implements PluginHandler {
                         filePath.substring(
                             0, filePath.length - path.extname(filePath).length
                         )
+
                     if (
                         inPlace &&
                         configuration.ejs.cacheInPlaceReplacements &&
@@ -306,6 +317,7 @@ export class Template implements PluginHandler {
                             }
                             throw error
                         }
+
                         if (result)
                             try {
                                 await fileSystem.writeFile(
@@ -331,7 +343,9 @@ export class Template implements PluginHandler {
                         }
                     }
                 }))
+
         await Promise.all(templateRenderingPromises)
+
         return await PluginAPI.callStack(
             'postEjsRender',
             plugins,
@@ -358,6 +372,7 @@ export class Template implements PluginHandler {
             givenOptions.preCompiledTemplateFileExtensions = ['.js']
         if (!givenOptions.encoding)
             givenOptions.encoding = 'utf-8'
+
         const inPlaceReplacemetPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
 
@@ -366,11 +381,12 @@ export class Template implements PluginHandler {
             let options:NestedOptions = Tools.copy(givenOptions) as
                 NestedOptions
             delete options.client
-            options = Tools.extend(
+            options = Tools.extend<NestedOptions>(
                 true,
                 options,
                 nestedLocals.options || {}
             )
+
             filePath = path.resolve((givenScope as Scope).basePath, filePath)
             options.filename =
                 path.relative((givenScope as Scope).basePath, filePath)
@@ -396,6 +412,7 @@ export class Template implements PluginHandler {
                     currentFilePath = filePath + extension
                     break
                 }
+
             if (currentFilePath) {
                 if (
                     configuration.ejs.reloadSourceContent &&
@@ -472,6 +489,7 @@ export class Template implements PluginHandler {
                             )
                         }
                     }
+
                 let result:string = ''
                 try {
                     /*
@@ -522,6 +540,7 @@ export class Template implements PluginHandler {
                         '<script processing$1workaround>$2</script>'
                     )
             }
+
             throw new Error(
                 `Given template file "${options.filename}" couldn't be ` +
                 'resolved (with known extensions: "' +

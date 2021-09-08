@@ -15,6 +15,7 @@
 */
 // region imports
 import Tools from 'clientnode'
+import {RecursivePartial} from 'clientnode/type'
 import {promises as fileSystem} from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
@@ -26,21 +27,29 @@ describe('ejs', ():void => {
     // region mockup
     const targetFilePath:string = './dummyPlugin/dummy.txt'
     let configuration:Configuration
+
     beforeAll(async ():Promise<void> => {
-        configuration = Tools.extend(
+        configuration = Tools.extend<Configuration>(
             true,
-            Tools.copy(
-                (await PluginAPI.loadAll(baseConfiguration)).configuration
+            Tools.copy<Configuration>(
+                (await PluginAPI.loadAll(baseConfiguration)).configuration as
+                    Configuration
             ),
             {
-                plugin: {directories: {test: {path: './dummyPlugin'}}},
                 context: {path: './dummyPlugin'},
-                ejs: packageConfiguration.webNode.ejs
-            },
+                ejs:
+                    packageConfiguration.webNode.ejs as
+                        unknown as
+                        Configuration['ejs'],
+                plugin: {directories: {test: {
+                    nameRegularExpressionPattern: '.+',
+                    path: './dummyPlugin'
+                }}}
+            } as RecursivePartial<Configuration>,
             {ejs: {
                 options: {compileDebug: false, debug: false},
                 scope: {plain: {}}
-            }}
+            }} as RecursivePartial<Configuration>
         )
     })
     // endregion
@@ -122,7 +131,9 @@ describe('ejs', ():void => {
     test('renderFactory', ():void => {
         const renderFunction:Function = Template.renderFactory(
             Tools.extend(
-                true, Tools.copy(configuration), {context: {path: './'}}
+                true,
+                Tools.copy(configuration),
+                {context: {path: './'}} as Configuration
             ),
             {b: 2} as unknown as Scope,
             {c: 3} as unknown as RenderOptions
