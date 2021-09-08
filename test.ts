@@ -15,6 +15,7 @@
 */
 // region imports
 import Tools from 'clientnode'
+import {RecursivePartial} from 'clientnode/type'
 import {promises as fileSystem} from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
@@ -35,17 +36,20 @@ describe('ejs', ():void => {
                     Configuration
             ),
             {
-                plugin: {directories: {test: {path: './dummyPlugin'}}},
                 context: {path: './dummyPlugin'},
                 ejs:
                     packageConfiguration.webNode.ejs as
-                    unknown as
-                    Configuration['ejs']
-            },
+                        unknown as
+                        Configuration['ejs'],
+                plugin: {directories: {test: {
+                    nameRegularExpressionPattern: '.+',
+                    path: './dummyPlugin'
+                }}}
+            } as RecursivePartial<Configuration>,
             {ejs: {
                 options: {compileDebug: false, debug: false},
                 scope: {plain: {}}
-            }}
+            }} as RecursivePartial<Configuration>
         )
     })
     // endregion

@@ -32,53 +32,65 @@ export type RenderOptions = EJSOptions & {
     encoding?:Encoding
     preCompiledTemplateFileExtensions?:Array<string>
 }
-export type Configuration = BaseConfiguration & {
-    ejs:{
-        cache:boolean
-        cacheInPlaceReplacements:boolean
-        extensions:Array<string>|string
-        locations:{
-            exclude:Array<string>|string
-            include:Array<string>|string
-            inPlaceReplacements:Array<string>|string
+export type Configuration<ConfigurationType = {}> =
+    BaseConfiguration<{
+        ejs:{
+            cache:boolean
+            cacheInPlaceReplacements:boolean
+            extensions:Array<string>|string
+            locations:{
+                exclude:Array<string>|string
+                include:Array<string>|string
+                inPlaceReplacements:Array<string>|string
+            }
+            options:RenderOptions
+            renderAfterConfigurationUpdates:boolean
+            reloadEntryFiles:boolean
+            reloadSourceContent:boolean
+            scope:{
+                evaluation:Mapping
+                execution:Mapping
+                plain:PlainObject<object|Primitive>
+            }
         }
+    }> &
+    ConfigurationType
+
+export type Scope =
+    Mapping<any> &
+    {
+        basePath:string
+        include:Function
         options:RenderOptions
-        renderAfterConfigurationUpdates:boolean
-        reloadEntryFiles:boolean
-        reloadSourceContent:boolean
-        scope:{
-            evaluation:Mapping
-            execution:Mapping
-            plain:PlainObject<object|Primitive>
-        }
+        scope:Scope
     }
-}
-export type Scope = Mapping<any> & {
-    basePath:string
-    include:Function
-    options:RenderOptions
-    scope:Scope
-}
 export type GivenScope = RecursivePartial<Scope>
+
+export type RuntimeScope = Scope & {plugins:Array<Plugin>}
+
 export type RenderFunction = (filePath:string, nestedLocals?:object) => string
-export type RuntimeScope = Scope & {
-    plugins:Array<Plugin>
-}
-export type Services = BaseServices & {ejs:{
-    getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
-        Promise<TemplateFiles>
-    render:(
-        givenScope:null|GivenScope,
-        configuration:Configuration,
-        plugins:Array<Plugin>
-    ) => Promise<Scope>
-    renderFactory:(
-        configuration:Configuration, scope:GivenScope, options:RenderOptions
-    ) => RenderFunction
-}}
+
+export type Services<ServiceType = {}> =
+    BaseServices<{
+        ejs:{
+            getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
+                Promise<TemplateFiles>
+            render:(
+                givenScope:null|GivenScope,
+                configuration:Configuration,
+                plugins:Array<Plugin>
+            ) => Promise<Scope>
+            renderFactory:(
+                configuration:Configuration, scope:GivenScope, options:RenderOptions
+            ) => RenderFunction
+        }
+    }> &
+    ServiceType
+
 export type TemplateFiles = Mapping<null>
 export type TemplateFunction = EJSTemplateFunction
 export type Templates = Mapping<null|TemplateFunction>
+
 export interface PluginHandler extends BasePluginHandler {
     /**
      * Hook before evaluating a templates. Corresponding files can be modified.
