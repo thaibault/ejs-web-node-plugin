@@ -46,10 +46,12 @@ describe('ejs', ():void => {
                     path: './dummyPlugin'
                 }}}
             } as RecursivePartial<Configuration>,
-            {ejs: {
-                options: {compileDebug: false, debug: false},
-                scope: {plain: {}}
-            }} as RecursivePartial<Configuration>
+            {
+                ejs: {
+                    options: {compileDebug: false, debug: false},
+                    scope: {plain: {}}
+                }
+            } as RecursivePartial<Configuration>
         )
     })
     // endregion
