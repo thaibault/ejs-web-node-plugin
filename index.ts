@@ -19,7 +19,7 @@
 // region imports
 import Tools from 'clientnode'
 import {
-    Encoding, EvaluationResult, File, Mapping, PlainObject
+    AnyFunction, Encoding, EvaluationResult, File, Mapping, PlainObject
 } from 'clientnode/type'
 import ejs from 'ejs'
 import {promises as fileSystem} from 'fs'
@@ -233,9 +233,11 @@ export class Template implements PluginHandler {
                         Tools,
                         webNodePath: __dirname
                     }
-                    const evaluated:EvaluationResult = Tools.stringEvaluate(
-                        evaluation[name], currentScope, type === 'execution'
-                    )
+                    const evaluated:EvaluationResult<AnyFunction> =
+                        Tools.stringEvaluate<AnyFunction>(
+                            evaluation[name],
+                            currentScope, type === 'execution'
+                        )
                     if (evaluated.error)
                         console.warn(
                             'Error occurred during processing given ' +
@@ -243,7 +245,7 @@ export class Template implements PluginHandler {
                             evaluated.error
                         )
                     else
-                        (scope as Mapping<Function>)[name] = evaluated.result
+                        (scope as Mapping<AnyFunction>)[name] = evaluated.result
                 }
         }
 
