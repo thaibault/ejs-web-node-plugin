@@ -68,20 +68,24 @@ export type GivenScope = RecursivePartial<Scope>
 
 export type RuntimeScope = Scope & {plugins:Array<Plugin>}
 
-export type RenderFunction = (filePath:string, nestedLocals?:object) => string
+export type RenderFunction =
+    (_filePath:string, _nestedLocals?:object) => string
 
 export type Services<ServiceType = {}> =
     BaseServices<{
         ejs:{
-            getEntryFiles:(configuration:Configuration, plugins:Array<Plugin>) =>
-                Promise<TemplateFiles>
+            getEntryFiles:(
+                _configuration:Configuration, _plugins:Array<Plugin>
+            ) => Promise<TemplateFiles>
             render:(
-                givenScope:null|GivenScope,
-                configuration:Configuration,
-                plugins:Array<Plugin>
+                _givenScope:null|GivenScope,
+                _configuration:Configuration,
+                _plugins:Array<Plugin>
             ) => Promise<Scope>
             renderFactory:(
-                configuration:Configuration, scope:GivenScope, options:RenderOptions
+                _configuration:Configuration,
+                _scope:GivenScope,
+                _options:RenderOptions
             ) => RenderFunction
         }
     }> &
@@ -100,29 +104,31 @@ export interface PluginHandler extends BasePluginHandler {
      * @param configuration - Configuration object extended by each plugin
      * specific configuration.
      * @param plugins - Topological sorted list of plugins.
+     *
      * @returns Given entry files.
      */
     preEjsRender?(
-        entryFiles:TemplateFiles,
-        scope:Scope,
-        configuration:Configuration,
-        plugins:Array<Plugin>
+        _entryFiles:TemplateFiles,
+        _scope:Scope,
+        _configuration:Configuration,
+        _plugins:Array<Plugin>
     ):Promise<TemplateFiles>
     /**
-     * Hook after rendering templates. Corresponding 
+     * Hook after rendering templates.
      * @param scope - Scope to render again templates.
      * @param entryFiles - Mapping from template file path to compiled function
      * or null.
      * @param configuration - Configuration object extended by each plugin
      * specific configuration.
      * @param plugins - Topological sorted list of plugins.
+     *
      * @returns Given scope.
      */
     postEjsRender?(
-        scope:Scope,
-        entryFiles:TemplateFiles,
-        configuration:Configuration,
-        plugins:Array<Plugin>
+        _scope:Scope,
+        _entryFiles:TemplateFiles,
+        _configuration:Configuration,
+        _plugins:Array<Plugin>
     ):Promise<Scope>
 }
 // endregion

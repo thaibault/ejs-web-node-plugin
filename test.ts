@@ -25,7 +25,7 @@ import {Configuration, RenderOptions, Scope, Services} from './type'
 // endregion
 describe('ejs', ():void => {
     // region mockup
-    const targetFilePath:string = './dummyPlugin/dummy.txt'
+    const targetFilePath = './dummyPlugin/dummy.txt'
     let configuration:Configuration
 
     beforeAll(async ():Promise<void> => {
@@ -78,13 +78,13 @@ describe('ejs', ():void => {
         await (await fileSystem.open(targetFilePath, 'w')).close()
         Template.entryFiles = {[`${targetFilePath}.ejs`]: null}
         Template.templates = Tools.copy(Template.entryFiles)
-        expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
+        void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
         try {
             await Template.shouldExit({} as Services, configuration)
         } catch (error) {
             console.error(error)
         }
-        expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(false)
+        void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(false)
     })
     // / endregion
     // / region helper
