@@ -273,7 +273,9 @@ export class Template implements PluginHandler {
         const templateRenderingPromises:Array<Promise<string>> = []
 
         for (const filePath in Template.entryFiles)
-            if (Template.entryFiles.hasOwnProperty(filePath))
+            if (Object.prototype.hasOwnProperty.call(
+                Template.entryFiles, filePath
+            ))
                 templateRenderingPromises.push(new Promise<string>(async (
                     resolve:(_value:string) => void,
                     reject:(_reason:Error) => void
