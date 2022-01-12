@@ -20,6 +20,7 @@ import {
 import {
     Options as EJSOptions, TemplateFunction as EJSTemplateFunction
 } from 'ejs'
+import {PluginAPI} from 'web-node'
 import {
     Configuration as BaseConfiguration,
     Plugin,
@@ -98,12 +99,13 @@ export type Templates = Mapping<null|TemplateFunction>
 export interface PluginHandler extends BasePluginHandler {
     /**
      * Hook before evaluating a templates. Corresponding files can be modified.
-     * @param entryFiles - Mapping from template file path to compiled function
-     * or null.
-     * @param scope - Scope to render again templates.
-     * @param configuration - Configuration object extended by each plugin
+     * @param _entryFiles - Mapping from template file path to compiled
+     * function or null.
+     * @param _scope - Scope to render again templates.
+     * @param _configuration - Configuration object extended by each plugin
      * specific configuration.
-     * @param plugins - Topological sorted list of plugins.
+     * @param _plugins - Topological sorted list of plugins.
+     * @param _pluginAPI - Plugin api reference.
      *
      * @returns Given entry files.
      */
@@ -111,16 +113,18 @@ export interface PluginHandler extends BasePluginHandler {
         _entryFiles:TemplateFiles,
         _scope:Scope,
         _configuration:Configuration,
-        _plugins:Array<Plugin>
+        _plugins:Array<Plugin>,
+        _pluginAPI:typeof PluginAPI
     ):Promise<TemplateFiles>
     /**
      * Hook after rendering templates.
-     * @param scope - Scope to render again templates.
-     * @param entryFiles - Mapping from template file path to compiled function
-     * or null.
-     * @param configuration - Configuration object extended by each plugin
+     * @param _scope - Scope to render again templates.
+     * @param _entryFiles - Mapping from template file path to compiled
+     * function or null.
+     * @param _configuration - Configuration object extended by each plugin
      * specific configuration.
-     * @param plugins - Topological sorted list of plugins.
+     * @param _plugins - Topological sorted list of plugins.
+     * @param _pluginAPI - Plugin api reference.
      *
      * @returns Given scope.
      */
@@ -128,7 +132,8 @@ export interface PluginHandler extends BasePluginHandler {
         _scope:Scope,
         _entryFiles:TemplateFiles,
         _configuration:Configuration,
-        _plugins:Array<Plugin>
+        _plugins:Array<Plugin>,
+        _pluginAPI:typeof PluginAPI
     ):Promise<Scope>
 }
 // endregion
