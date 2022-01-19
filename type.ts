@@ -76,12 +76,15 @@ export type Services<ServiceType = {}> =
     BaseServices<{
         ejs:{
             getEntryFiles:(
-                _configuration:Configuration, _plugins:Array<Plugin>
+                _configuration:Configuration,
+                _plugins:Array<Plugin>,
+                _pluginAPI:typeof PluginAPI,
             ) => Promise<TemplateFiles>
             render:(
                 _givenScope:null|GivenScope,
                 _configuration:Configuration,
-                _plugins:Array<Plugin>
+                _plugins:Array<Plugin>,
+                _pluginAPI:typeof PluginAPI
             ) => Promise<Scope>
             renderFactory:(
                 _configuration:Configuration,
