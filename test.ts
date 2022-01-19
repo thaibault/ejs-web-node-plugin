@@ -19,6 +19,7 @@ import {RecursivePartial} from 'clientnode/type'
 import {promises as fileSystem} from 'fs'
 import path from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
+
 import Template from './index'
 import packageConfiguration from './package.json'
 import {Configuration, RenderOptions, Scope, Services} from './type'
@@ -63,7 +64,7 @@ describe('ejs', ():void => {
         configuration.ejs.renderAfterConfigurationUpdates = false
         try {
             await Template.postConfigurationLoaded(
-                configuration, [], configuration, []
+                configuration, [], configuration, [], PluginAPI
             )
         } catch (error) {
             console.error(error)
@@ -92,7 +93,7 @@ describe('ejs', ():void => {
         try {
             expect(
                 path.basename(Object.keys(await Template.getEntryFiles(
-                    configuration, []
+                    configuration, [], PluginAPI
                 ))[0])
             ).toStrictEqual('dummy.txt.ejs')
         } catch (error) {
@@ -102,6 +103,7 @@ describe('ejs', ():void => {
     test('render', async ():Promise<void> => {
         if (await Tools.isFile(targetFilePath))
             await fileSystem.unlink(targetFilePath)
+
         configuration.ejs.scope.plain.mockupData = {
             a: 2,
             b: [1, 2, {a: 'test'}],
@@ -110,9 +112,10 @@ describe('ejs', ():void => {
                 e: [null, 2, 3]
             }
         }
+
         let result:any
         try {
-            result = await Template.render(null, configuration, [])
+            result = await Template.render(null, configuration, [], PluginAPI)
         } catch (error) {
             console.error(error)
         }

@@ -61,6 +61,7 @@ export class Template implements PluginHandler {
      * changed plugin configuration.
      * @param oldConfiguration - Old configuration object.
      * @param plugins - List of all loaded plugins.
+     * @param pluginAPI - Plugin api reference.
      *
      * @returns New configuration object to use.
      */
@@ -68,10 +69,11 @@ export class Template implements PluginHandler {
         configuration:Configuration,
         pluginsWithChangedConfiguration:Array<Plugin>,
         oldConfiguration:Configuration,
-        plugins:Array<Plugin>
+        plugins:Array<Plugin>,
+        pluginAPI:typeof PluginAPI
     ):Promise<Configuration> {
         if (configuration.ejs.renderAfterConfigurationUpdates)
-            await Template.render(null, configuration, plugins)
+            await Template.render(null, configuration, plugins, pluginAPI)
 
         return configuration
     }
@@ -144,11 +146,14 @@ export class Template implements PluginHandler {
      * Retrieves all files to process.
      * @param configuration - Updated configuration object.
      * @param plugins - List of all loaded plugins.
+     * @param pluginAPI - Plugin api reference.
      *
      * @returns A promise holding all resolved files.
      */
     static async getEntryFiles(
-        configuration:Configuration, plugins:Array<Plugin>
+        configuration:Configuration,
+        plugins:Array<Plugin>,
+        pluginAPI:typeof PluginAPI
     ):Promise<TemplateFiles> {
         if (Template.entryFiles && !configuration.ejs.reloadEntryFiles)
             return Template.entryFiles
@@ -157,7 +162,7 @@ export class Template implements PluginHandler {
             ([] as Array<string>).concat(configuration.ejs.extensions)
 
         Template.entryFiles = {}
-        for (const location of PluginAPI.determineLocations(
+        for (const location of pluginAPI.determineLocations(
             configuration, configuration.ejs.locations.include
         ))
             await Tools.walkDirectoryRecursively(
@@ -165,7 +170,7 @@ export class Template implements PluginHandler {
                 (file:File):false|void => {
                     if (
                         file.name.startsWith('.') ||
-                        PluginAPI.isInLocations(
+                        pluginAPI.isInLocations(
                             configuration,
                             plugins,
                             file.path,
@@ -207,13 +212,15 @@ export class Template implements PluginHandler {
      * @param givenScope - Scope to use for rendering templates.
      * @param configuration - Configuration object.
      * @param plugins - List of all loaded plugins.
+     * @param pluginAPI - Plugin api reference.
      *
      * @returns A promise resolving to scope used for template rendering.
      */
     static async render(
         givenScope:null|GivenScope,
         configuration:Configuration,
-        plugins:Array<Plugin>
+        plugins:Array<Plugin>,
+        pluginAPI:typeof PluginAPI
     ):Promise<Scope> {
         const scope:Scope = Tools.extend(
             true,
@@ -235,7 +242,7 @@ export class Template implements PluginHandler {
                         nowUTCTimestamp: Tools.numberGetUTCTimestamp(now),
                         parser: ejs,
                         path,
-                        PluginAPI,
+                        PluginAPI: pluginAPI,
                         plugins,
                         require: eval('require'),
                         scope,
@@ -260,11 +267,11 @@ export class Template implements PluginHandler {
                 }
         }
 
-        Template.entryFiles = await PluginAPI.callStack(
+        Template.entryFiles = await pluginAPI.callStack(
             'preEjsRender',
             plugins,
             configuration,
-            await Template.getEntryFiles(configuration, plugins),
+            await Template.getEntryFiles(configuration, plugins, pluginAPI),
             scope
         )
 
@@ -367,7 +374,7 @@ export class Template implements PluginHandler {
 
         await Promise.all(templateRenderingPromises)
 
-        return await PluginAPI.callStack(
+        return await pluginAPI.callStack(
             'postEjsRender',
             plugins,
             configuration,
