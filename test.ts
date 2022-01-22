@@ -37,7 +37,7 @@ describe('ejs', ():void => {
                     Configuration
             ),
             {
-                context: {path: './dummyPlugin'},
+                core: {context: {path: './dummyPlugin'}},
                 ejs:
                     packageConfiguration.webNode.ejs as
                         unknown as
@@ -138,7 +138,7 @@ describe('ejs', ():void => {
             Tools.extend(
                 true,
                 Tools.copy(configuration),
-                {context: {path: './'}} as Configuration
+                {core: {context: {path: './'}}} as Configuration
             ),
             {b: 2} as unknown as Scope,
             {c: 3} as unknown as RenderOptions
