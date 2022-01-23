@@ -224,7 +224,7 @@ export class Template implements PluginHandler {
     ):Promise<Scope> {
         const scope:Scope = Tools.extend(
             true,
-            {basePath: configuration.context.path},
+            {basePath: configuration.core.context.path},
             configuration.ejs.scope.plain,
             givenScope || {}
         )
@@ -350,7 +350,7 @@ export class Template implements PluginHandler {
                                     newFilePath,
                                     result,
                                     {
-                                        encoding: configuration.encoding,
+                                        encoding: configuration.core.encoding,
                                         flag: 'w',
                                         mode: 0o666
                                     }
@@ -396,7 +396,7 @@ export class Template implements PluginHandler {
         givenOptions:RenderOptions = {}
     ):RenderFunction {
         if (!givenScope.basePath)
-            givenScope.basePath = configuration.context.path
+            givenScope.basePath = configuration.core.context.path
         if (!givenOptions.preCompiledTemplateFileExtensions)
             givenOptions.preCompiledTemplateFileExtensions = ['.js']
         if (!givenOptions.encoding)

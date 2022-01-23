@@ -32,27 +32,27 @@ describe('ejs', ():void => {
     beforeAll(async ():Promise<void> => {
         configuration = Tools.extend<Configuration>(
             true,
-            Tools.copy<Configuration>(
-                (await PluginAPI.loadAll(baseConfiguration)).configuration as
-                    Configuration
-            ),
+            (await PluginAPI.loadAll(Tools.copy(baseConfiguration)))
+                .configuration as Configuration
+            ,
             {
-                context: {path: './dummyPlugin'},
-                ejs:
-                    packageConfiguration.webNode.ejs as
-                        unknown as
-                        Configuration['ejs'],
-                plugin: {directories: {test: {
-                    nameRegularExpressionPattern: '.+',
-                    path: './dummyPlugin'
-                }}}
-            } as RecursivePartial<Configuration>,
+                core: {
+                    context: {path: './dummyPlugin', type: 'relative'},
+                    plugin: {directories: {test: {
+                        nameRegularExpressionPattern: '.+',
+                        path: './dummyPlugin'
+                    }}}
+                },
+                ejs: packageConfiguration.webNode.ejs as
+                    unknown as
+                    Configuration['ejs']
+            } as unknown as RecursivePartial<Configuration>,
             {
                 ejs: {
                     options: {compileDebug: false, debug: false},
                     scope: {plain: {}}
                 }
-            } as RecursivePartial<Configuration>
+            } as unknown as RecursivePartial<Configuration>
         )
     })
     // endregion
@@ -61,7 +61,9 @@ describe('ejs', ():void => {
     test('postConfigurationLoaded', async ():Promise<void> => {
         if (await Tools.isFile(targetFilePath))
             await fileSystem.unlink(targetFilePath)
+
         configuration.ejs.renderAfterConfigurationUpdates = false
+
         try {
             await Template.postConfigurationLoaded(
                 configuration, [], configuration, [], PluginAPI
@@ -69,6 +71,7 @@ describe('ejs', ():void => {
         } catch (error) {
             console.error(error)
         }
+
         expect(await Tools.isFile(targetFilePath)).toStrictEqual(false)
     })
     test('preLoadService', ():void =>
@@ -77,14 +80,18 @@ describe('ejs', ():void => {
     )
     test('shouldExit', async ():Promise<void> => {
         await (await fileSystem.open(targetFilePath, 'w')).close()
+
         Template.entryFiles = {[`${targetFilePath}.ejs`]: null}
         Template.templates = Tools.copy(Template.entryFiles)
+
         void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
+
         try {
             await Template.shouldExit({} as Services, configuration)
         } catch (error) {
             console.error(error)
         }
+
         void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(false)
     })
     // / endregion
@@ -138,7 +145,7 @@ describe('ejs', ():void => {
             Tools.extend(
                 true,
                 Tools.copy(configuration),
-                {context: {path: './'}} as Configuration
+                {core: {context: {path: './'}}} as Configuration
             ),
             {b: 2} as unknown as Scope,
             {c: 3} as unknown as RenderOptions
