@@ -32,13 +32,12 @@ describe('ejs', ():void => {
     beforeAll(async ():Promise<void> => {
         configuration = Tools.extend<Configuration>(
             true,
-            Tools.copy<Configuration>(
-                (await PluginAPI.loadAll(baseConfiguration)).configuration as
-                    Configuration
-            ),
+            (await PluginAPI.loadAll(Tools.copy(baseConfiguration)))
+                .configuration as Configuration
+            ,
             {
                 core: {
-                    context: {path: './dummyPlugin'},
+                    context: {path: './dummyPlugin', type: 'relative'},
                     plugin: {directories: {test: {
                         nameRegularExpressionPattern: '.+',
                         path: './dummyPlugin'
@@ -47,13 +46,13 @@ describe('ejs', ():void => {
                 ejs: packageConfiguration.webNode.ejs as
                     unknown as
                     Configuration['ejs']
-            } as RecursivePartial<Configuration>,
+            } as unknown as RecursivePartial<Configuration>,
             {
                 ejs: {
                     options: {compileDebug: false, debug: false},
                     scope: {plain: {}}
                 }
-            } as RecursivePartial<Configuration>
+            } as unknown as RecursivePartial<Configuration>
         )
     })
     // endregion
