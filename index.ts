@@ -263,7 +263,8 @@ export class Template implements PluginHandler {
                             evaluated.error
                         )
                     else
-                        (scope as Mapping<AnyFunction>)[name] = evaluated.result
+                        (scope as Mapping<AnyFunction>)[name] =
+                            evaluated.result
                 }
         }
 
