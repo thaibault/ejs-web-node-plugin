@@ -57,7 +57,7 @@ describe('ejs', ():void => {
     })
     // endregion
     // region tests
-    // / region api
+    /// region api
     test('postConfigurationLoaded', async ():Promise<void> => {
         if (await Tools.isFile(targetFilePath))
             await fileSystem.unlink(targetFilePath)
@@ -94,8 +94,8 @@ describe('ejs', ():void => {
 
         void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(false)
     })
-    // / endregion
-    // / region helper
+    /// endregion
+    /// region helper
     test('getEntryFiles', async ():Promise<void> => {
         try {
             expect(
@@ -154,7 +154,7 @@ describe('ejs', ():void => {
         expect(():Function => renderFunction('a')).toThrow()
         renderFunction('dummyPlugin/dummy.txt', {configuration, Tools})
     })
-    // / endregion
+    /// endregion
     // endregion
 })
 // region vim modline
