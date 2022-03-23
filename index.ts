@@ -17,12 +17,16 @@
     endregion
 */
 // region imports
-import Tools from 'clientnode'
+import Tools, {currentRequire} from 'clientnode'
 import {
-    AnyFunction, Encoding, EvaluationResult, File, Mapping
+    AnyFunction,
+    Encoding,
+    EvaluationResult,
+    File,
+    Mapping
 } from 'clientnode/type'
-import ejs from 'ejs'
-import {promises as fileSystem} from 'fs'
+import ejs, {Data as EJSScope} from 'ejs'
+import fileSystem from 'fs/promises'
 import synchronousFileSystem from 'fs'
 import path from 'path'
 import {PluginAPI} from 'web-node'
@@ -30,6 +34,7 @@ import {Plugin, PluginHandler} from 'web-node/type'
 
 import {
     Configuration,
+    EvaluateScopeValueScope,
     GivenScope,
     RenderFunction,
     RenderOptions,
@@ -104,7 +109,7 @@ export class Template implements PluginHandler {
     ):Promise<Services> {
         const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
-        const templateOutputRemoveingPromises:Array<Promise<string>> = []
+        const templateOutputRemoveingPromises:Array<Promise<boolean>> = []
         for (const filePath in Template.templates)
             if (
                 Object.prototype.hasOwnProperty.call(
@@ -112,28 +117,40 @@ export class Template implements PluginHandler {
                 ) &&
                 !inPlaceReplacementPaths.includes(filePath)
             )
-                templateOutputRemoveingPromises.push(new Promise(async (
-                    resolve:Function, reject:Function
-                ):Promise<void> => {
+                templateOutputRemoveingPromises.push(new Promise<boolean>((
+                    resolve:(_removed:boolean) => void,
+                    reject:(_reason:Error) => void
+                ):void => {
                     const newFilePath:string = filePath.substring(
                         0, filePath.length - path.extname(filePath).length
                     )
                     let newFileExists = false
 
-                    try {
-                        newFileExists = await Tools.isFile(newFilePath)
-                    } catch (error) {
-                        reject(error)
-                    }
-
-                    if (newFileExists)
+                    void (async ():Promise<void> => {
                         try {
-                            resolve(await fileSystem.unlink(newFilePath))
+                            newFileExists = await Tools.isFile(newFilePath)
                         } catch (error) {
-                            reject(error)
+                            /* eslint-disable prefer-promise-reject-errors */
+                            reject(error as Error)
+                            /* eslint-enable prefer-promise-reject-errors */
                         }
-                    else
-                        resolve(newFileExists)
+
+                        if (newFileExists)
+                            try {
+                                await fileSystem.unlink(newFilePath)
+                                resolve(true)
+                            } catch (error) {
+                                /*
+                                    eslint-disable prefer-promise-reject-errors
+                                */
+                                reject(error as Error)
+                                /*
+                                    eslint-enable prefer-promise-reject-errors
+                                */
+                            }
+                        else
+                            resolve(false)
+                    })()
                 }))
 
         await Promise.all(templateOutputRemoveingPromises)
@@ -234,7 +251,7 @@ export class Template implements PluginHandler {
             const evaluation:Mapping = configuration.ejs.scope[type]
             for (const name in evaluation)
                 if (Object.prototype.hasOwnProperty.call(evaluation, name)) {
-                    const currentScope:Mapping<any> = {
+                    const currentScope:EvaluateScopeValueScope = {
                         configuration: Tools.copy(configuration, -1, true),
                         currentPath: process.cwd(),
                         fileSystem,
@@ -244,17 +261,18 @@ export class Template implements PluginHandler {
                         path,
                         PluginAPI: pluginAPI,
                         plugins,
-                        require: eval('require'),
+                        require: currentRequire!,
                         scope,
                         synchronousFileSystem,
-                        template: Template,
+                        template: Template as unknown as PluginHandler,
                         Tools,
                         webNodePath: __dirname
                     }
                     const evaluated:EvaluationResult<AnyFunction> =
                         Tools.stringEvaluate<AnyFunction>(
                             evaluation[name],
-                            currentScope, type === 'execution'
+                            currentScope as unknown as Mapping<unknown>,
+                            type === 'execution'
                         )
                     if (evaluated.error)
                         console.warn(
@@ -284,10 +302,10 @@ export class Template implements PluginHandler {
             if (Object.prototype.hasOwnProperty.call(
                 Template.entryFiles, filePath
             ))
-                templateRenderingPromises.push(new Promise<string>(async (
+                templateRenderingPromises.push(new Promise<string>((
                     resolve:(_value:string) => void,
                     reject:(_reason:Error) => void
-                ):Promise<void> => {
+                ):void => {
                     const currentScope:RuntimeScope =
                         {...scope} as RuntimeScope
                     const inPlace:boolean =
@@ -298,79 +316,92 @@ export class Template implements PluginHandler {
                             0, filePath.length - path.extname(filePath).length
                         )
 
-                    if (
-                        inPlace &&
-                        configuration.ejs.cacheInPlaceReplacements &&
-                        Template.entryFiles[filePath] ||
-                        !inPlace &&
-                        configuration.ejs.cache &&
-                        await Tools.isFile(newFilePath)
-                    ) {
-                        console.info(
-                            `Template: Use cached file ("${newFilePath}") ` +
-                            `for "${filePath}".`
-                        )
-
-                        resolve(newFilePath)
-                    } else {
-                        const currentOptions:RenderOptions = {
-                            ...Tools.copy(configuration.ejs.options),
-                            filename: path.relative(
-                                currentScope.basePath, filePath
-                            )
-                        }
-                        if (!currentScope.options)
-                            currentScope.options = currentOptions
-                        if (!currentScope.plugins)
-                            currentScope.plugins = plugins
-
-                        const render:RenderFunction = Template.renderFactory(
-                            configuration, currentScope, currentOptions
-                        )
-
-                        let result = ''
-                        try {
-                            result = render(filePath)
-                        } catch (error) {
-                            if (inPlace) {
-                                console.warn(
-                                    'Error during running in-place ' +
-                                    `replacement template file "${filePath}"` +
-                                    `: ${Tools.represent(error)}`
-                                )
-
-                                return resolve(newFilePath)
-                            }
-
-                            throw error
-                        }
-
-                        if (result)
-                            try {
-                                await fileSystem.writeFile(
-                                    newFilePath,
-                                    result,
-                                    {
-                                        encoding: configuration.core.encoding,
-                                        flag: 'w',
-                                        mode: 0o666
-                                    }
-                                )
-
-                                resolve(newFilePath)
-                            } catch (error) {
-                                reject(error as Error)
-                            }
-                        else {
-                            console.warn(
-                                'An empty template processing result ' +
-                                `detected for file "${newFilePath}" with ` +
-                                `input file "${filePath}".`
+                    void (async ():Promise<void> => {
+                        if (
+                            inPlace &&
+                            configuration.ejs.cacheInPlaceReplacements &&
+                            Template.entryFiles[filePath] ||
+                            !inPlace &&
+                            configuration.ejs.cache &&
+                            await Tools.isFile(newFilePath)
+                        ) {
+                            console.info(
+                                `Template: Use cached file ("${newFilePath}"` +
+                                `) for "${filePath}".`
                             )
 
                             resolve(newFilePath)
+                        } else {
+                            const currentOptions:RenderOptions = {
+                                ...Tools.copy(configuration.ejs.options),
+                                filename: path.relative(
+                                    currentScope.basePath, filePath
+                                )
+                            }
+                            if (!currentScope.options)
+                                currentScope.options = currentOptions
+                            if (!currentScope.plugins)
+                                currentScope.plugins = plugins
+
+                            const render:RenderFunction =
+                                Template.renderFactory(
+                                    configuration, currentScope, currentOptions
+                                )
+
+                            let result = ''
+                            try {
+                                result = render(filePath)
+                            } catch (error) {
+                                if (inPlace) {
+                                    console.warn(
+                                        'Error during running in-place ' +
+                                        `replacement template file "` +
+                                        `${filePath}": ` +
+                                        Tools.represent(error)
+                                    )
+
+                                    return resolve(newFilePath)
+                                }
+
+                                throw error
+                            }
+
+                            if (result)
+                                try {
+                                    await fileSystem.writeFile(
+                                        newFilePath,
+                                        result,
+                                        {
+                                            encoding:
+                                                configuration.core.encoding,
+                                            flag: 'w',
+                                            mode: 0o666
+                                        }
+                                    )
+
+                                    resolve(newFilePath)
+                                } catch (error) {
+                                    /*
+                                        eslint-disable
+                                        prefer-promise-reject-errors
+                                    */
+                                    reject(error as Error)
+                                    /*
+                                        eslint-enable
+                                        prefer-promise-reject-errors
+                                    */
+                                }
+                            else {
+                                console.warn(
+                                    'An empty template processing result ' +
+                                    `detected for file "${newFilePath}" with` +
+                                    ` input file "${filePath}".`
+                                )
+
+                                resolve(newFilePath)
+                            }
                         }
-                    }
+                    })()
                 }))
 
         await Promise.all(templateRenderingPromises)
@@ -461,7 +492,8 @@ export class Template implements PluginHandler {
                     )
                         try {
                             Template.templates[currentFilePath] =
-                                eval('require')(currentFilePath)
+                                currentRequire!(currentFilePath) as
+                                    TemplateFunction
                         } catch (error) {
                             throw new Error(
                                 'Error occurred during loading script module' +
@@ -502,6 +534,10 @@ export class Template implements PluginHandler {
                                 while (scopeNames.includes(localsName))
                                     localsName = `_${localsName}`
                                 Template.templates[currentFilePath] =
+                                    /*
+                                        eslint-disable
+                                        @typescript-eslint/no-implied-eval
+                                    */
                                     new Function(
                                         ...scopeNames,
                                         localsName,
@@ -512,6 +548,10 @@ export class Template implements PluginHandler {
                                         `${localsName}.escapeFn,include,` +
                                         `${localsName}.rethrow)`
                                     ) as TemplateFunction
+                                    /*
+                                        eslint-enable
+                                        @typescript-eslint/no-implied-eval
+                                    */
                             }
                         } catch (error) {
                             throw new Error(
@@ -532,22 +572,29 @@ export class Template implements PluginHandler {
                         "...Object.values(scope)" is not appreciate here.
                     */
                     result = !options.strict && options._with ?
-                        (Template.templates[currentFilePath] as Function)(
-                            scope, scope.escapeFn, scope.include
-                        ) :
+                        (Template.templates[currentFilePath] as
+                            (
+                                _scope:Scope,
+                                _escape:Scope['escapeFn'],
+                                _include:Scope['include']
+                            ) => string
+                        )(scope, scope.escapeFn, scope.include) :
                         Template.templates[currentFilePath]!(
                             ...originalScopeNames
-                                .map((name:string):any => scope[name])
-                                .concat(options._with ? [] : scope)
+                                .map((name:string):unknown => scope[name])
+                                .concat(options._with ? [] : scope) as
+                                    [EJSScope]
                         )
                 } catch (error) {
                     let scopeDescription = ''
+
                     try {
                         scopeDescription =
                             `scope ${Tools.represent(scope)} against`
                     } catch (error) {
                         // Ignore error.
                     }
+
                     throw new Error(
                         'Error occurred during running template ' +
                         `${scopeDescription}file "${currentFilePath}": ` +

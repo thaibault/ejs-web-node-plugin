@@ -14,6 +14,7 @@
     endregion
 */
 // region imports
+import Tools from 'clientnode'
 import {
     Encoding, Mapping, PlainObject, Primitive, RecursivePartial
 } from 'clientnode/type'
@@ -33,7 +34,7 @@ export type RenderOptions = EJSOptions & {
     encoding?:Encoding
     preCompiledTemplateFileExtensions?:Array<string>
 }
-export type Configuration<ConfigurationType = {}> =
+export type Configuration<ConfigurationType = Mapping<unknown>> =
     BaseConfiguration<{
         ejs:{
             cache:boolean
@@ -57,11 +58,32 @@ export type Configuration<ConfigurationType = {}> =
     }> &
     ConfigurationType
 
+export interface EvaluateScopeValueScope {
+    configuration:Configuration
+    currentPath:string
+    fileSystem:typeof import('fs/promises')
+    now:Date
+    nowUTCTimestamp:number
+    parser:typeof import('ejs')
+    path:typeof import('path')
+    PluginAPI:typeof PluginAPI
+    plugins:Array<Plugin>
+    require:typeof require
+    scope:Scope
+    synchronousFileSystem:typeof import('fs')
+    template:BasePluginHandler
+    Tools:typeof Tools
+    webNodePath:string
+}
+
+export type RenderFunction =
+    (_filePath:string, _nestedLocals?:object) => string
+
 export type Scope =
-    Mapping<any> &
+    Mapping<unknown> &
     {
         basePath:string
-        include:Function
+        include:RenderFunction
         options:RenderOptions
         scope:Scope
     }
@@ -69,10 +91,7 @@ export type GivenScope = RecursivePartial<Scope>
 
 export type RuntimeScope = Scope & {plugins:Array<Plugin>}
 
-export type RenderFunction =
-    (_filePath:string, _nestedLocals?:object) => string
-
-export type Services<ServiceType = {}> =
+export type Services<ServiceType = Mapping<unknown>> =
     BaseServices<{
         ejs:{
             getEntryFiles:(

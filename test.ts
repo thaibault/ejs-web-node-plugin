@@ -22,7 +22,9 @@ import {configuration as baseConfiguration, PluginAPI} from 'web-node'
 
 import Template from './index'
 import packageConfiguration from './package.json'
-import {Configuration, RenderOptions, Scope, Services} from './type'
+import {
+    Configuration, RenderFunction, RenderOptions, Scope, Services
+} from './type'
 // endregion
 describe('ejs', ():void => {
     // region mockup
@@ -120,13 +122,14 @@ describe('ejs', ():void => {
             }
         }
 
-        let result:any
+        let result:Scope|undefined
         try {
             result = await Template.render(null, configuration, [], PluginAPI)
         } catch (error) {
             console.error(error)
         }
-        expect(result.mockupData)
+
+        expect(result!.mockupData)
             .toStrictEqual(configuration.ejs.scope.plain.mockupData)
         expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
         /*
@@ -141,7 +144,7 @@ describe('ejs', ():void => {
         await fileSystem.unlink(targetFilePath)
     })
     test('renderFactory', ():void => {
-        const renderFunction:Function = Template.renderFactory(
+        const renderFunction:RenderFunction = Template.renderFactory(
             Tools.extend(
                 true,
                 Tools.copy(configuration),
@@ -151,7 +154,7 @@ describe('ejs', ():void => {
             {c: 3} as unknown as RenderOptions
         )
         expect(typeof renderFunction).toStrictEqual('function')
-        expect(():Function => renderFunction('a')).toThrow()
+        expect(():string => renderFunction('a')).toThrow()
         renderFunction('dummyPlugin/dummy.txt', {configuration, Tools})
     })
     /// endregion
