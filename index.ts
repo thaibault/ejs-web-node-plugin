@@ -88,14 +88,14 @@ export class Template implements PluginHandler {
      *
      * @returns Given and extended object of services.
      */
-    static preLoadService(services:Services):Services {
+    static preLoadService(services:Omit<Services, 'ejs'>):Services {
         services.ejs = {
             getEntryFiles: Template.getEntryFiles.bind(Template),
             render: Template.render.bind(Template),
             renderFactory: Template.renderFactory.bind(Template)
         }
 
-        return services
+        return services as Services
     }
     /**
      * Triggers when application will be closed soon and removes created files.
