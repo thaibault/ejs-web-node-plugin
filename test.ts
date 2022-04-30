@@ -83,8 +83,9 @@ describe('ejs', ():void => {
     test('shouldExit', async ():Promise<void> => {
         await (await fileSystem.open(targetFilePath, 'w')).close()
 
-        Template.entryFiles = {[`${targetFilePath}.ejs`]: null}
-        Template.templates = Tools.copy(Template.entryFiles)
+        const filePath = `${targetFilePath}.ejs`
+        Template.entryFiles = new Set([filePath])
+        Template.templates = {[filePath]: null}
 
         void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
 
@@ -101,9 +102,9 @@ describe('ejs', ():void => {
     test('getEntryFiles', async ():Promise<void> => {
         try {
             expect(
-                path.basename(Object.keys(await Template.getEntryFiles(
+                path.basename(Array.from((await Template.getEntryFiles(
                     configuration, [], PluginAPI
-                ))[0])
+                )))[0])
             ).toStrictEqual('dummy.txt.ejs')
         } catch (error) {
             console.error(error)
