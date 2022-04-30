@@ -114,7 +114,7 @@ export type Services<ServiceType = Mapping<unknown>> =
     }> &
     ServiceType
 
-export type TemplateFiles = Mapping<null>
+export type TemplateFiles = Set<string>
 export type TemplateFunction = EJSTemplateFunction
 export type Templates = Mapping<null|TemplateFunction>
 
