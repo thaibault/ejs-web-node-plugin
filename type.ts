@@ -94,11 +94,9 @@ export type RuntimeScope = Scope & {plugins:Array<Plugin>}
 export type Services<ServiceType = Mapping<unknown>> =
     BaseServices<{
         ejs:{
-            getEntryFiles:(
-                _configuration:Configuration,
-                _plugins:Array<Plugin>,
-                _pluginAPI:typeof PluginAPI,
-            ) => Promise<TemplateFiles>
+            entryFiles:null|TemplateFiles
+            templates:Templates
+
             render:(
                 _givenScope:null|GivenScope,
                 _configuration:Configuration,

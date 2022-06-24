@@ -55,45 +55,35 @@ import {
  * compiled template function.
  */
 export class Template implements PluginHandler {
-    static entryFiles:TemplateFiles
-    static templates:Templates = {}
     // region api
-    /**
-     * Triggered hook when at least one plugin has a new configuration file and
-     * configuration object has been changed.
-     * @param configuration - Updated configuration object.
-     * @param pluginsWithChangedConfiguration - List of plugins which have a
-     * changed plugin configuration.
-     * @param oldConfiguration - Old configuration object.
-     * @param plugins - List of all loaded plugins.
-     * @param pluginAPI - Plugin api reference.
-     *
-     * @returns New configuration object to use.
-     */
-    static async postConfigurationLoaded(
-        configuration:Configuration,
-        pluginsWithChangedConfiguration:Array<Plugin>,
-        oldConfiguration:Configuration,
-        plugins:Array<Plugin>,
-        pluginAPI:typeof PluginAPI
-    ):Promise<Configuration> {
-        if (configuration.ejs.renderAfterConfigurationUpdates)
-            await Template.render(null, configuration, plugins, pluginAPI)
-
-        return configuration
-    }
     /**
      * Appends an template renderer to the web node services.
      * @param services - An object with stored service instances.
+     * @param configuration - Updated configuration object.
+     * @param plugins - List of all loaded plugins.
+     * @param pluginAPI - Plugin api reference.
      *
      * @returns Given and extended object of services.
      */
-    static preLoadService(services:Omit<Services, 'ejs'>):Services {
+    static preLoadService(
+        services:Omit<Services, 'ejs'>,
+        configuration:Configuration,
+        plugins:Array<Plugin>,
+        pluginAPI:typeof PluginAPI
+    ):Services {
         services.ejs = {
+            entryFiles: null
+            templates: {
+
             getEntryFiles: Template.getEntryFiles.bind(Template),
             render: Template.render.bind(Template),
             renderFactory: Template.renderFactory.bind(Template)
         }
+
+        if (configuration.ejs.renderAfterConfigurationUpdates)
+            await Template.render(
+                null, services, configuration, plugins, pluginAPI
+            )
 
         return services as Services
     }
@@ -110,7 +100,7 @@ export class Template implements PluginHandler {
         const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
         const templateOutputRemoveingPromises:Array<Promise<boolean>> = []
-        for (const filePath of Object.keys(Template.templates))
+        for (const filePath of Object.keys(services.ejs.templates))
             if (!inPlaceReplacementPaths.includes(filePath))
                 templateOutputRemoveingPromises.push(new Promise<boolean>((
                     resolve:(_removed:boolean) => void,
@@ -159,21 +149,23 @@ export class Template implements PluginHandler {
      * @param configuration - Updated configuration object.
      * @param plugins - List of all loaded plugins.
      * @param pluginAPI - Plugin api reference.
+     * @param services - An object with stored service instances.
      *
      * @returns A promise holding all resolved files.
      */
     static async getEntryFiles(
         configuration:Configuration,
         plugins:Array<Plugin>,
-        pluginAPI:typeof PluginAPI
+        pluginAPI:typeof PluginAPI,
+        services:Services
     ):Promise<TemplateFiles> {
-        if (Template.entryFiles && !configuration.ejs.reloadEntryFiles)
-            return Template.entryFiles
+        if (services.ejs.entryFiles && !configuration.ejs.reloadEntryFiles)
+            return services.ejs.entryFiles
 
         const extensions:Array<string> =
             ([] as Array<string>).concat(configuration.ejs.extensions)
 
-        Template.entryFiles = new Set<string>()
+        services.ejs.entryFiles = new Set<string>()
         for (const location of pluginAPI.determineLocations(
             configuration, configuration.ejs.locations.include
         ))
@@ -202,22 +194,23 @@ export class Template implements PluginHandler {
                             file.name.endsWith(extension)
                         )
                     )
-                        Template.entryFiles.add(file.path)
+                        services.ejs.entryFiles.add(file.path)
                 }
             )
 
         for (const filePath of ([] as Array<string>)
             .concat(configuration.ejs.locations.inPlaceReplacements)
         )
-            Template.entryFiles.add(filePath)
+            services.ejs.entryFiles.add(filePath)
 
         for (const filePath of Template.entryFiles)
-            Template.templates[filePath] = null
+            services.ejs.templates[filePath] = null
 
-        return Template.entryFiles
+        return services.ejs.entryFiles
     }
     /**
      * Triggers template rendering.
+     * @param services - An object with stored service instances.
      * @param givenScope - Scope to use for rendering templates.
      * @param configuration - Configuration object.
      * @param plugins - List of all loaded plugins.
@@ -226,6 +219,7 @@ export class Template implements PluginHandler {
      * @returns A promise resolving to scope used for template rendering.
      */
     static async render(
+        services:Omit<Services, 'ejs'>,
         givenScope:null|GivenScope,
         configuration:Configuration,
         plugins:Array<Plugin>,
@@ -330,10 +324,12 @@ export class Template implements PluginHandler {
                         if (!currentScope.plugins)
                             currentScope.plugins = plugins
 
-                        const render:RenderFunction =
-                            Template.renderFactory(
-                                configuration, currentScope, currentOptions
-                            )
+                        const render:RenderFunction = Template.renderFactory(
+                            services,
+                            configuration,
+                            currentScope,
+                            currentOptions
+                        )
 
                         let result = ''
                         try {
@@ -399,6 +395,7 @@ export class Template implements PluginHandler {
     }
     /**
      * Generates a render function with given base scope to resolve includes.
+     * @param services - An object with stored service instances.
      * @param configuration - Configuration object.
      * @param givenScope - Base scope to extend from.
      * @param givenOptions - Render options to use.
@@ -406,6 +403,7 @@ export class Template implements PluginHandler {
      * @returns Render function.
      */
     static renderFactory(
+        services:Omit<Services, 'ejs'>,
         configuration:Configuration,
         givenScope:GivenScope = {},
         givenOptions:RenderOptions = {}
@@ -443,7 +441,7 @@ export class Template implements PluginHandler {
             Tools.extend(scope, nestedLocals)
 
             scope.include =
-                Template.renderFactory(configuration, scope, options)
+                Template.renderFactory(services, configuration, scope, options)
 
             const originalScopeNames:Array<string> = Object.keys(scope)
             const scopeNames:Array<string> = originalScopeNames.map(
@@ -464,9 +462,9 @@ export class Template implements PluginHandler {
                     !inPlaceReplacemetPaths.includes(filePath) ||
                     !(
                         Object.prototype.hasOwnProperty.call(
-                            Template.templates, currentFilePath
+                            services.ejs.templates, currentFilePath
                         ) &&
-                        Template.templates[currentFilePath]
+                        services.ejs.templates[currentFilePath]
                     )
                 )
                     if (
@@ -474,7 +472,7 @@ export class Template implements PluginHandler {
                             .includes(path.extname(currentFilePath))
                     )
                         try {
-                            Template.templates[currentFilePath] =
+                            services.ejs.templates[currentFilePath] =
                                 currentRequire!(currentFilePath) as
                                     TemplateFunction
                         } catch (error) {
@@ -504,7 +502,7 @@ export class Template implements PluginHandler {
                             options.client = true
 
                         try {
-                            Template.templates[currentFilePath] =
+                            services.ejs.templates[currentFilePath] =
                                 ejs.compile(template, options) as
                                     TemplateFunction
                             /*
@@ -516,7 +514,7 @@ export class Template implements PluginHandler {
                                     options.localsName || 'locals'
                                 while (scopeNames.includes(localsName))
                                     localsName = `_${localsName}`
-                                Template.templates[currentFilePath] =
+                                services.ejs.templates[currentFilePath] =
                                     /*
                                         eslint-disable
                                         @typescript-eslint/no-implied-eval
@@ -525,8 +523,9 @@ export class Template implements PluginHandler {
                                         ...scopeNames,
                                         localsName,
                                         'return ' +
-                                        Template.templates[currentFilePath]!
-                                            .toString() +
+                                        services.ejs.templates[
+                                            currentFilePath
+                                        ]!.toString() +
                                         `(${localsName},` +
                                         `${localsName}.escapeFn,include,` +
                                         `${localsName}.rethrow)`
@@ -555,14 +554,14 @@ export class Template implements PluginHandler {
                         "...Object.values(scope)" is not appreciate here.
                     */
                     result = !options.strict && options._with ?
-                        (Template.templates[currentFilePath] as
+                        (services.ejs.templates[currentFilePath] as
                             (
                                 _scope:Scope,
                                 _escape:Scope['escapeFn'],
                                 _include:Scope['include']
                             ) => string
                         )(scope, scope.escapeFn, scope.include) :
-                        Template.templates[currentFilePath]!(
+                        services.ejs.templates[currentFilePath]!(
                             ...originalScopeNames
                                 .map((name:string):unknown => scope[name])
                                 .concat(options._with ? [] : scope) as
