@@ -61,38 +61,61 @@ describe('ejs', ():void => {
     // endregion
     // region tests
     /// region api
-    // TODO !
-    test('postConfigurationLoaded', async ():Promise<void> => {
+    test('postConfigurationHotLoaded', async ():Promise<void> => {
         if (await Tools.isFile(targetFilePath))
             await fileSystem.unlink(targetFilePath)
 
         configuration.ejs.renderAfterConfigurationUpdates = false
 
         try {
-            await Template.postConfigurationLoaded(
-                configuration, [], configuration, [], PluginAPI
-            )
+            await Template.postConfigurationHotLoaded({
+                configuration,
+                hook: 'postConfigurationHotLoaded',
+                pluginAPI: PluginAPI,
+                plugins: [],
+                pluginsWithChangedConfiguration: []
+            })
         } catch (error) {
             console.error(error)
         }
 
-        expect(await Tools.isFile(targetFilePath)).toStrictEqual(false)
+        await expect(Tools.isFile(targetFilePath))
+            .resolves.toStrictEqual(false)
     })
-    test('preLoadService', ():void =>
-        expect(Template.preLoadService({} as Services).ejs)
-            .toHaveProperty('render')
-    )
+    test('preLoadService', async ():Promise<void> => {
+        const services:Services = {} as unknown as Services
+
+        await expect(Template.preLoadService({
+            configuration,
+            hook: 'preLoadService',
+            pluginAPI: PluginAPI,
+            plugins: [],
+            services
+        })).resolves.toBeUndefined()
+
+        expect(services).toHaveProperty('ejs.render')
+    })
     test('shouldExit', async ():Promise<void> => {
         await (await fileSystem.open(targetFilePath, 'w')).close()
 
         const filePath = `${targetFilePath}.ejs`
-        Template.entryFiles = new Set([filePath])
-        Template.templates = {[filePath]: null}
+
+        const services:Services = {
+            entryFiles: new Set([filePath]),
+            templates: {[filePath]: null}
+        } as unknown as Services
 
         void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
 
         try {
-            await Template.shouldExit({} as Services, configuration)
+            await Template.shouldExit({
+                configuration,
+                hook: 'shouldExit',
+                pluginAPI: PluginAPI,
+                plugins: [],
+                servicePromises: {},
+                services
+            })
         } catch (error) {
             console.error(error)
         }
@@ -104,9 +127,14 @@ describe('ejs', ():void => {
     test('getEntryFiles', async ():Promise<void> => {
         try {
             expect(
-                path.basename(Array.from((await Template.getEntryFiles(
-                    configuration, [], PluginAPI
-                )))[0])
+                path.basename(Array.from((await Template.getEntryFiles({
+                    configuration,
+                    hook: '',
+                    pluginAPI: PluginAPI,
+                    plugins: [],
+                    services: {} as unknown as Services,
+                    servicePromises: {}
+                })))[0])
             ).toStrictEqual('dummy.txt.ejs')
         } catch (error) {
             console.error(error)
@@ -125,16 +153,16 @@ describe('ejs', ():void => {
             }
         }
 
-        let result:Scope|undefined
-        try {
-            result = await Template.render(null, configuration, [], PluginAPI)
-        } catch (error) {
-            console.error(error)
-        }
+        await expect(Template.render({
+            configuration,
+            hook: '',
+            pluginAPI: PluginAPI,
+            plugins: [],
+            servicePromises: {},
+            services: {} as unknown as Services
+        })).resolves.toBeUndefined()
 
-        expect(result!.mockupData)
-            .toStrictEqual(configuration.ejs.scope.plain.mockupData)
-        expect(await Tools.isFile(targetFilePath)).toStrictEqual(true)
+        await expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
         /*
             NOTE: Uncomment following line to see resulting rendered dummy
             template.
@@ -148,6 +176,14 @@ describe('ejs', ():void => {
     })
     test('renderFactory', ():void => {
         const renderFunction:RenderFunction = Template.renderFactory(
+            {ejs: {
+                entryFiles: new Set<string>(),
+                templates: {},
+
+                getEntryFiles: Template.getEntryFiles.bind(Template),
+                render: Template.render.bind(Template),
+                renderFactory: Template.renderFactory.bind(Template)
+            }},
             Tools.extend(
                 true,
                 Tools.copy(configuration),

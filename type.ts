@@ -26,7 +26,10 @@ import {
     Configuration as BaseConfiguration,
     Plugin,
     PluginHandler as BasePluginHandler,
-    Services as BaseServices
+    ServicePromises,
+    ServicePromisesState as BaseServicePromisesState,
+    Services as BaseServices,
+    ServicesState as BaseServicesState
 } from 'web-node/type'
 // endregion
 // region exports
@@ -69,7 +72,7 @@ export interface EvaluateScopeValueScope {
     PluginAPI:typeof PluginAPI
     plugins:Array<Plugin>
     require:typeof require
-    scope:Scope
+    scope:Partial<Scope>
     synchronousFileSystem:typeof import('fs')
     template:BasePluginHandler
     Tools:typeof Tools
@@ -77,7 +80,7 @@ export interface EvaluateScopeValueScope {
 }
 
 export type RenderFunction =
-    (_filePath:string, _nestedLocals?:object) => string
+    (filePath:string, nestedLocals?:Mapping<unknown>) => string
 
 export type Scope =
     Mapping<unknown> &
@@ -97,20 +100,31 @@ export type Services<ServiceType = Mapping<unknown>> =
             entryFiles:null|TemplateFiles
             templates:Templates
 
-            render:(
-                _givenScope:null|GivenScope,
-                _configuration:Configuration,
-                _plugins:Array<Plugin>,
-                _pluginAPI:typeof PluginAPI
-            ) => Promise<Scope>
+            getEntryFiles:(state:State) => Promise<TemplateFiles>
+            render:(state:State) => Promise<void>
             renderFactory:(
-                _configuration:Configuration,
-                _scope:GivenScope,
-                _options:RenderOptions
+                services:Services,
+                configuration:Configuration,
+                scope:GivenScope,
+                options:RenderOptions
             ) => RenderFunction
         }
     }> &
     ServiceType
+
+export interface Data {
+    entryFiles:TemplateFiles
+    scope:Partial<Scope>
+}
+export type ServicesState = BaseServicesState<
+    undefined, Configuration, Services
+>
+export type State = BaseServicePromisesState<
+    Partial<Data>|undefined,
+    Configuration,
+    Services,
+    ServicePromises
+>
 
 export type TemplateFiles = Set<string>
 export type TemplateFunction = EJSTemplateFunction
@@ -119,42 +133,18 @@ export type Templates = Mapping<null|TemplateFunction>
 export interface PluginHandler extends BasePluginHandler {
     /**
      * Hook before evaluating a templates. Corresponding files can be modified.
-     * @param _entryFiles - Mapping from template file path to compiled
-     * function or null.
-     * @param _scope - Scope to render again templates.
-     * @param _configuration - Configuration object extended by each plugin
-     * specific configuration.
-     * @param _plugins - Topological sorted list of plugins.
-     * @param _pluginAPI - Plugin api reference.
+     * @param state - Application state.
      *
-     * @returns Given entry files.
+     * @returns Promise resolving to entry files to use.
      */
-    preEjsRender?(
-        _entryFiles:TemplateFiles,
-        _scope:Scope,
-        _configuration:Configuration,
-        _plugins:Array<Plugin>,
-        _pluginAPI:typeof PluginAPI
-    ):Promise<TemplateFiles>
+    preEjsRender?(state:State):Promise<Data>
     /**
      * Hook after rendering templates.
-     * @param _scope - Scope to render again templates.
-     * @param _entryFiles - Mapping from template file path to compiled
-     * function or null.
-     * @param _configuration - Configuration object extended by each plugin
-     * specific configuration.
-     * @param _plugins - Topological sorted list of plugins.
-     * @param _pluginAPI - Plugin api reference.
+     * @param state - Application state.
      *
-     * @returns Given scope.
+     * @returns Promise resolving to scope to use for evaluation.
      */
-    postEjsRender?(
-        _scope:Scope,
-        _entryFiles:TemplateFiles,
-        _configuration:Configuration,
-        _plugins:Array<Plugin>,
-        _pluginAPI:typeof PluginAPI
-    ):Promise<Scope>
+    postEjsRender?(state:State):Promise<void>
 }
 // endregion
 // region vim modline
