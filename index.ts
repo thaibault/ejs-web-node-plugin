@@ -100,19 +100,20 @@ export class Template implements PluginHandler {
      * @param state.configuration.ejs - Plugins configuration.
      * @param state.configuration.ejs.locations - Plugins template locations.
      * @param state.services - Applications services.
-     * @param state.services.ejs - Plugins services.
-     * @param state.services.ejs.templates - Plugins compiled templates.
      *
      * @returns Promise resolving to nothing.
      */
-    static async shouldExit({
-        configuration: {ejs: {locations}}, services: {ejs: {templates}}
-    }:State):Promise<void> {
+    static async shouldExit(
+        {configuration: {ejs: {locations}}, services}:State
+    ):Promise<void> {
+        if (!services.ejs?.templates)
+            return
+
         const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
             .concat(locations.inPlaceReplacements)
 
         const templateOutputRemoveingPromises:Array<Promise<boolean>> = []
-        for (const filePath of Object.keys(templates))
+        for (const filePath of Object.keys(services.ejs.templates))
             if (!inPlaceReplacementPaths.includes(filePath))
                 templateOutputRemoveingPromises.push(new Promise<boolean>((
                     resolve:(removed:boolean) => void,

@@ -18,7 +18,7 @@ import {beforeAll, describe, expect, test} from '@jest/globals'
 import Tools from 'clientnode'
 import {RecursivePartial} from 'clientnode/type'
 import {promises as fileSystem} from 'fs'
-import path from 'path'
+import {basename} from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
 
 import Template from './index'
@@ -100,12 +100,12 @@ describe('ejs', ():void => {
 
         const filePath = `${targetFilePath}.ejs`
 
-        const services:Services = {
+        const services:Services = {ejs: {
             entryFiles: new Set([filePath]),
             templates: {[filePath]: null}
-        } as unknown as Services
+        }} as unknown as Services
 
-        void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
+        await expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
 
         try {
             await Template.shouldExit({
@@ -120,21 +120,25 @@ describe('ejs', ():void => {
             console.error(error)
         }
 
-        void expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(false)
+        await expect(Tools.isFile(targetFilePath))
+            .resolves.toStrictEqual(false)
     })
     /// endregion
     /// region helper
     test('getEntryFiles', async ():Promise<void> => {
         try {
             expect(
-                path.basename(Array.from((await Template.getEntryFiles({
+                basename(Array.from(await Template.getEntryFiles({
                     configuration,
                     hook: '',
                     pluginAPI: PluginAPI,
                     plugins: [],
-                    services: {} as unknown as Services,
+                    services: {ejs: {
+                        entryFiles: new Set<string>(),
+                        templates: {}
+                    }} as unknown as Services,
                     servicePromises: {}
-                })))[0])
+                }))[0])
             ).toStrictEqual('dummy.txt.ejs')
         } catch (error) {
             console.error(error)
@@ -159,7 +163,14 @@ describe('ejs', ():void => {
             pluginAPI: PluginAPI,
             plugins: [],
             servicePromises: {},
-            services: {} as unknown as Services
+            services: {ejs: {
+                entryFiles: new Set<string>(),
+                templates: {},
+
+                getEntryFiles: Template.getEntryFiles.bind(Template),
+                render: Template.render.bind(Template),
+                renderFactory: Template.renderFactory.bind(Template)
+            }} as unknown as Services
         })).resolves.toBeUndefined()
 
         await expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
