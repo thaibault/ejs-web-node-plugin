@@ -65,7 +65,8 @@ export class Template implements PluginHandler {
         state:ChangedConfigurationState
     ):Promise<void> {
         if (
-            state.configuration.renderAfterConfigurationUpdates &&
+            (state as unknown as State)
+                .configuration.ejs?.renderAfterConfigurationUpdates &&
             ((state as unknown as State).services as Partial<Services>)
                 .ejs?.render
         )
