@@ -227,7 +227,7 @@ export class Template implements PluginHandler {
      *
      * @returns A promise resolving to nothing.
      */
-    static async render(state:State):Promise<void> {
+    static async render(state:State):Promise<Scope> {
         const {configuration, data, pluginAPI, plugins, services} =
             state
 
@@ -399,6 +399,8 @@ export class Template implements PluginHandler {
         await Promise.all(templateRenderingPromises)
 
         await pluginAPI.callStack<State>({...state, hook: 'postEjsRender'})
+
+        return scope as Scope
     }
     /**
      * Generates a render function with given base scope to resolve includes.

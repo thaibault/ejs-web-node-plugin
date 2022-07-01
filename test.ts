@@ -171,7 +171,7 @@ describe('ejs', ():void => {
                 render: Template.render.bind(Template),
                 renderFactory: Template.renderFactory.bind(Template)
             }} as unknown as Services
-        })).resolves.toBeUndefined()
+        })).resolves.toHaveProperty('Tools', Tools)
 
         await expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
         /*

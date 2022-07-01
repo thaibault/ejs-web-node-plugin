@@ -101,7 +101,7 @@ export type Services<ServiceType = Mapping<unknown>> =
             templates:Templates
 
             getEntryFiles:(state:State) => Promise<TemplateFiles>
-            render:(state:State) => Promise<void>
+            render:(state:State) => Promise<Scope>
             renderFactory:(
                 services:Services,
                 configuration:Configuration,
