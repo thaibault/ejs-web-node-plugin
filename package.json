@@ -35,7 +35,7 @@
     "clear": "weboptimizer clear && rimraf dummyPlugin/dummy.txt",
     "document": "weboptimizer document",
     "lint": "weboptimizer lint",
-    "postversion": "yarn publish --non-interactive && git push --tags && git push",
+    "postversion": "yarn publish --non-interactive; git push --tags && git push",
     "prepare": "yarn build",
     "serve": "yarn build && yarn start",
     "start": "web-node '{plugin: {hotReloading: true}}'",
