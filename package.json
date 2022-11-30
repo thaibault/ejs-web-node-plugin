@@ -47,7 +47,6 @@
     "watch": "weboptimizer build --watch"
   },
   "dependencies": {
-    "@types/webpack": "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.1.tgz",
     "ejs": "*"
   },
   "devDependencies": {
@@ -82,7 +81,6 @@
     "npm": ">=8"
   },
   "resolutions": {
-    "@types/webpack": "https://registry.yarnpkg.com/@favware/skip-dependency/-/skip-dependency-1.1.1.tgz",
     "colors": "1.4.0"
   },
   "sideEffects": true,
