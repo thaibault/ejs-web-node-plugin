@@ -581,8 +581,11 @@ export class Template implements PluginHandler {
                     let scopeDescription = ''
 
                     try {
-                        scopeDescription =
-                            ` scope ${Tools.represent(scope)} against`
+                        scopeDescription = Tools.represent(scope)
+                        if (scopeDescription.length > 1000)
+                            scopeDescription =
+                                scopeDescription.substring(0, 997) + '...'
+                        scopeDescription = ` scope ${scopeDescription} against`
                     } catch (error) {
                         // Ignore error.
                     }
