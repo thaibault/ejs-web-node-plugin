@@ -582,14 +582,14 @@ export class Template implements PluginHandler {
 
                     try {
                         scopeDescription =
-                            `scope ${Tools.represent(scope)} against`
+                            ` scope ${Tools.represent(scope)} against`
                     } catch (error) {
                         // Ignore error.
                     }
 
                     throw new Error(
-                        'Error occurred during running template ' +
-                        `${scopeDescription}file "${currentFilePath}": ` +
+                        'Error occurred during running template' +
+                        `${scopeDescription} file "${currentFilePath}": ` +
                         Tools.represent(error)
                     )
                 }
