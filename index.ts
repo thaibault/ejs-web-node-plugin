@@ -238,16 +238,18 @@ export class Template implements PluginHandler {
             data?.scope || {} as Partial<Scope>
         )
 
+        const currentPath:string = process.cwd()
         const now = new Date()
+        const nowUTCTimestamp:number = Tools.numberGetUTCTimestamp(now)
         for (const type of ['evaluation', 'execution'] as const) {
             const evaluations:Mapping = configuration.ejs.scope[type]
             for (const [name, expression] of Object.entries(evaluations)) {
                 const currentScope:EvaluateScopeValueScope = {
-                    configuration: Tools.copy(configuration, -1, true),
-                    currentPath: process.cwd(),
+                    configuration,
+                    currentPath,
                     fileSystem,
                     now,
-                    nowUTCTimestamp: Tools.numberGetUTCTimestamp(now),
+                    nowUTCTimestamp,
                     parser: ejs,
                     path,
                     PluginAPI: pluginAPI,
@@ -287,6 +289,7 @@ export class Template implements PluginHandler {
             },
             hook: 'preEjsRender'
         }
+
 
         const givenData:Data = await pluginAPI.callStack<State, Data>(state)
         scope = givenData.scope
