@@ -1,6 +1,6 @@
 {
   "name": "ejs-web-node-plugin",
-  "version": "1.0.342",
+  "version": "1.0.343",
   "description": "A static template processor for web-node.",
   "keywords": [
     "backend",
