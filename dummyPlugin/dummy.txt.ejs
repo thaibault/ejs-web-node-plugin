@@ -4,13 +4,13 @@
 Tests:
 ------
 
-<%- Tools.stringCompressStyleValue('border  1 px solid  red') %>
+<%- string.compressStyleValue('border  1 px solid  red') %>
 
 Configurations:
 ---------------
 
 <%_ for (var key in configuration) { _%>
-    - "<%- key %>" -> <%- typeof configuration[key] === 'string' ? configuration[key] : Tools.represent(configuration[key]) %>
+    - "<%- key %>" -> <%- typeof configuration[key] === 'string' ? configuration[key] : object.represent(configuration[key]) %>
 <%_ } _%>
 
 <%_
@@ -20,7 +20,7 @@ Configurations:
 _%>
 <%- list.join(', ') %>
 
-data = <%- Tools.convertCircularObjectToJSON(typeof mockupData === 'undefined' ? {} : mockupData) %>;
+data = <%- object.convertCircularObjectToJSON(typeof mockupData === 'undefined' ? {} : mockupData) %>;
 
 <%_ let includedVariable = 1 _%>
 
