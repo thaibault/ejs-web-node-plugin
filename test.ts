@@ -15,9 +15,10 @@
 */
 // region imports
 import {beforeAll, describe, expect, test} from '@jest/globals'
-import Tools from 'clientnode'
-import {RecursivePartial} from 'clientnode/type'
-import {promises as fileSystem} from 'fs'
+import {
+    copy, extend, identity, isFile, RecursivePartial, UTILITY_SCOPE
+} from 'clientnode'
+import {open, unlink} from 'fs/promises'
 import {basename} from 'path'
 import {configuration as baseConfiguration, PluginAPI} from 'web-node'
 
@@ -33,9 +34,9 @@ describe('ejs', ():void => {
     let configuration:Configuration
 
     beforeAll(async ():Promise<void> => {
-        configuration = Tools.extend<Configuration>(
+        configuration = extend<Configuration>(
             true,
-            (await PluginAPI.loadAll(Tools.copy(baseConfiguration)))
+            (await PluginAPI.loadAll(copy(baseConfiguration)))
                 .configuration as Configuration
             ,
             {
@@ -62,8 +63,8 @@ describe('ejs', ():void => {
     // region tests
     /// region api
     test('postConfigurationHotLoaded', async ():Promise<void> => {
-        if (await Tools.isFile(targetFilePath))
-            await fileSystem.unlink(targetFilePath)
+        if (await isFile(targetFilePath))
+            await unlink(targetFilePath)
 
         configuration.ejs.renderAfterConfigurationUpdates = false
 
@@ -79,7 +80,7 @@ describe('ejs', ():void => {
             console.error(error)
         }
 
-        await expect(Tools.isFile(targetFilePath))
+        await expect(isFile(targetFilePath))
             .resolves.toStrictEqual(false)
     })
     test('preLoadService', async ():Promise<void> => {
@@ -96,7 +97,7 @@ describe('ejs', ():void => {
         expect(services).toHaveProperty('ejs.render')
     })
     test('shouldExit', async ():Promise<void> => {
-        await (await fileSystem.open(targetFilePath, 'w')).close()
+        await (await open(targetFilePath, 'w')).close()
 
         const filePath = `${targetFilePath}.ejs`
 
@@ -105,7 +106,7 @@ describe('ejs', ():void => {
             templates: {[filePath]: null}
         }} as unknown as Services
 
-        await expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
+        await expect(isFile(targetFilePath)).resolves.toStrictEqual(true)
 
         try {
             await Template.shouldExit({
@@ -120,7 +121,7 @@ describe('ejs', ():void => {
             console.error(error)
         }
 
-        await expect(Tools.isFile(targetFilePath))
+        await expect(isFile(targetFilePath))
             .resolves.toStrictEqual(false)
     })
     /// endregion
@@ -145,8 +146,8 @@ describe('ejs', ():void => {
         }
     })
     test('render', async ():Promise<void> => {
-        if (await Tools.isFile(targetFilePath))
-            await fileSystem.unlink(targetFilePath)
+        if (await isFile(targetFilePath))
+            await unlink(targetFilePath)
 
         configuration.ejs.scope.plain.mockupData = {
             a: 2,
@@ -171,9 +172,9 @@ describe('ejs', ():void => {
                 render: Template.render.bind(Template),
                 renderFactory: Template.renderFactory.bind(Template)
             }} as unknown as Services
-        })).resolves.toHaveProperty('Tools', Tools)
+        })).resolves.toHaveProperty('functions.identity', identity)
 
-        await expect(Tools.isFile(targetFilePath)).resolves.toStrictEqual(true)
+        await expect(isFile(targetFilePath)).resolves.toStrictEqual(true)
         /*
             NOTE: Uncomment following line to see resulting rendered dummy
             template.
@@ -183,7 +184,7 @@ describe('ejs', ():void => {
             targetFilePath, {encoding: configuration.encoding}
         ))
         */
-        await fileSystem.unlink(targetFilePath)
+        await unlink(targetFilePath)
     })
     test('renderFactory', ():void => {
         const renderFunction:RenderFunction = Template.renderFactory(
@@ -195,9 +196,9 @@ describe('ejs', ():void => {
                 render: Template.render.bind(Template),
                 renderFactory: Template.renderFactory.bind(Template)
             }},
-            Tools.extend(
+            extend(
                 true,
-                Tools.copy(configuration),
+                copy(configuration),
                 {core: {context: {path: './'}}} as Configuration
             ),
             {b: 2} as unknown as Scope,
@@ -205,7 +206,9 @@ describe('ejs', ():void => {
         )
         expect(typeof renderFunction).toStrictEqual('function')
         expect(():string => renderFunction('a')).toThrow()
-        renderFunction('dummyPlugin/dummy.txt', {configuration, Tools})
+        renderFunction(
+            'dummyPlugin/dummy.txt', {...UTILITY_SCOPE, configuration}
+        )
     })
     /// endregion
     // endregion

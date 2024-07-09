@@ -14,10 +14,9 @@
     endregion
 */
 // region imports
-import Tools from 'clientnode'
 import {
-    Encoding, Mapping, PlainObject, Primitive, RecursivePartial
-} from 'clientnode/type'
+    Encoding, Mapping, PlainObject, Primitive, RecursivePartial, UTILITY_SCOPE
+} from 'clientnode'
 import {
     Options as EJSOptions, TemplateFunction as EJSTemplateFunction
 } from 'ejs'
@@ -61,23 +60,23 @@ export type Configuration<ConfigurationType = Mapping<unknown>> =
     }> &
     ConfigurationType
 
-export interface EvaluateScopeValueScope {
-    configuration:Configuration
-    currentPath:string
-    fileSystem:typeof import('fs/promises')
-    now:Date
-    nowUTCTimestamp:number
-    parser:typeof import('ejs')
-    path:typeof import('path')
-    PluginAPI:typeof PluginAPI
-    plugins:Array<Plugin>
-    require:typeof require
-    scope:Partial<Scope>
-    synchronousFileSystem:typeof import('fs')
-    template:BasePluginHandler
-    Tools:typeof Tools
-    webNodePath:string
-}
+export type EvaluateScopeValueScope =
+    typeof UTILITY_SCOPE &
+    {
+        configuration:Configuration
+        currentPath:string
+        fileSystem:typeof import('fs/promises')
+        now:Date
+        nowUTCTimestamp:number
+        parser:typeof import('ejs')
+        path:typeof import('path')
+        PluginAPI:typeof PluginAPI
+        plugins:Array<Plugin>
+        scope:Partial<Scope>
+        synchronousFileSystem:typeof import('fs')
+        template:BasePluginHandler
+        webNodePath:string
+    }
 
 export type RenderFunction =
     (filePath:string, nestedLocals?:Mapping<unknown>) => string
@@ -134,14 +133,12 @@ export interface PluginHandler extends BasePluginHandler {
     /**
      * Hook before evaluating a templates. Corresponding files can be modified.
      * @param state - Application state.
-     *
      * @returns Promise resolving to entry files to use.
      */
     preEjsRender?(state:State):Promise<Data>
     /**
      * Hook after rendering templates.
      * @param state - Application state.
-     *
      * @returns Promise resolving to scope to use for evaluation.
      */
     postEjsRender?(state:State):Promise<void>
