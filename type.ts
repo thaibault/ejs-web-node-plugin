@@ -20,7 +20,7 @@ import {
 import {
     Options as EJSOptions, TemplateFunction as EJSTemplateFunction
 } from 'ejs'
-import {PluginAPI} from 'web-node'
+import {pluginAPI} from 'web-node'
 import {
     Configuration as BaseConfiguration,
     Plugin,
@@ -70,7 +70,7 @@ export type EvaluateScopeValueScope =
         nowUTCTimestamp:number
         parser:typeof import('ejs')
         path:typeof import('path')
-        PluginAPI:typeof PluginAPI
+        pluginAPI:typeof pluginAPI
         plugins:Array<Plugin>
         scope:Partial<Scope>
         synchronousFileSystem:typeof import('fs')
