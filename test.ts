@@ -20,9 +20,16 @@ import {
 } from 'clientnode'
 import {open, unlink} from 'fs/promises'
 import {basename} from 'path'
-import {configuration as baseConfiguration, PluginAPI} from 'web-node'
+import {configuration as baseConfiguration, loadAll, pluginAPI} from 'web-node'
 
-import Template from './index'
+import {
+    getEntryFiles,
+    postConfigurationHotLoaded,
+    preLoadService,
+    render,
+    renderFactory,
+    shouldExit
+} from './index'
 import packageConfiguration from './package.json'
 import {
     Configuration, RenderFunction, RenderOptions, Scope, Services
@@ -36,7 +43,7 @@ describe('ejs', ():void => {
     beforeAll(async ():Promise<void> => {
         configuration = extend<Configuration>(
             true,
-            (await PluginAPI.loadAll(copy(baseConfiguration)))
+            (await loadAll(copy(baseConfiguration)))
                 .configuration as Configuration
             ,
             {
@@ -69,10 +76,10 @@ describe('ejs', ():void => {
         configuration.ejs.renderAfterConfigurationUpdates = false
 
         try {
-            await Template.postConfigurationHotLoaded({
+            await postConfigurationHotLoaded({
                 configuration,
                 hook: 'postConfigurationHotLoaded',
-                pluginAPI: PluginAPI,
+                pluginAPI,
                 plugins: [],
                 pluginsWithChangedConfiguration: []
             })
@@ -86,10 +93,10 @@ describe('ejs', ():void => {
     test('preLoadService', async ():Promise<void> => {
         const services:Services = {} as unknown as Services
 
-        await expect(Template.preLoadService({
+        await expect(preLoadService({
             configuration,
             hook: 'preLoadService',
-            pluginAPI: PluginAPI,
+            pluginAPI,
             plugins: [],
             services
         })).resolves.toBeUndefined()
@@ -109,10 +116,10 @@ describe('ejs', ():void => {
         await expect(isFile(targetFilePath)).resolves.toStrictEqual(true)
 
         try {
-            await Template.shouldExit({
+            await shouldExit({
                 configuration,
                 hook: 'shouldExit',
-                pluginAPI: PluginAPI,
+                pluginAPI,
                 plugins: [],
                 servicePromises: {},
                 services
@@ -129,10 +136,10 @@ describe('ejs', ():void => {
     test('getEntryFiles', async ():Promise<void> => {
         try {
             expect(
-                basename(Array.from(await Template.getEntryFiles({
+                basename(Array.from(await getEntryFiles({
                     configuration,
                     hook: '',
-                    pluginAPI: PluginAPI,
+                    pluginAPI,
                     plugins: [],
                     services: {ejs: {
                         entryFiles: new Set<string>(),
@@ -158,19 +165,19 @@ describe('ejs', ():void => {
             }
         }
 
-        await expect(Template.render({
+        await expect(render({
             configuration,
             hook: '',
-            pluginAPI: PluginAPI,
+            pluginAPI,
             plugins: [],
             servicePromises: {},
             services: {ejs: {
                 entryFiles: new Set<string>(),
                 templates: {},
 
-                getEntryFiles: Template.getEntryFiles.bind(Template),
-                render: Template.render.bind(Template),
-                renderFactory: Template.renderFactory.bind(Template)
+                getEntryFiles,
+                render,
+                renderFactory
             }} as unknown as Services
         })).resolves.toHaveProperty('functions.identity', identity)
 
@@ -187,14 +194,14 @@ describe('ejs', ():void => {
         await unlink(targetFilePath)
     })
     test('renderFactory', ():void => {
-        const renderFunction:RenderFunction = Template.renderFactory(
+        const renderFunction:RenderFunction = renderFactory(
             {ejs: {
                 entryFiles: new Set<string>(),
                 templates: {},
 
-                getEntryFiles: Template.getEntryFiles.bind(Template),
-                render: Template.render.bind(Template),
-                renderFactory: Template.renderFactory.bind(Template)
+                getEntryFiles,
+                render,
+                renderFactory
             }},
             extend(
                 true,
