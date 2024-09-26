@@ -35,12 +35,12 @@ import {
     Configuration, RenderFunction, RenderOptions, Scope, Services
 } from './type'
 // endregion
-describe('ejs', ():void => {
+describe('ejs', (): void => {
     // region mockup
     const targetFilePath = './dummyPlugin/dummy.txt'
-    let configuration:Configuration
+    let configuration: Configuration
 
-    beforeAll(async ():Promise<void> => {
+    beforeAll(async (): Promise<void> => {
         configuration = extend<Configuration>(
             true,
             (await loadAll(copy(baseConfiguration)))
@@ -69,7 +69,7 @@ describe('ejs', ():void => {
     // endregion
     // region tests
     /// region api
-    test('postConfigurationHotLoaded', async ():Promise<void> => {
+    test('postConfigurationHotLoaded', async (): Promise<void> => {
         if (await isFile(targetFilePath))
             await unlink(targetFilePath)
 
@@ -90,8 +90,8 @@ describe('ejs', ():void => {
         await expect(isFile(targetFilePath))
             .resolves.toStrictEqual(false)
     })
-    test('preLoadService', async ():Promise<void> => {
-        const services:Services = {} as unknown as Services
+    test('preLoadService', async (): Promise<void> => {
+        const services: Services = {} as unknown as Services
 
         await expect(preLoadService({
             configuration,
@@ -103,12 +103,12 @@ describe('ejs', ():void => {
 
         expect(services).toHaveProperty('ejs.render')
     })
-    test('shouldExit', async ():Promise<void> => {
+    test('shouldExit', async (): Promise<void> => {
         await (await open(targetFilePath, 'w')).close()
 
         const filePath = `${targetFilePath}.ejs`
 
-        const services:Services = {ejs: {
+        const services: Services = {ejs: {
             entryFiles: new Set([filePath]),
             templates: {[filePath]: null}
         }} as unknown as Services
@@ -133,7 +133,7 @@ describe('ejs', ():void => {
     })
     /// endregion
     /// region helper
-    test('getEntryFiles', async ():Promise<void> => {
+    test('getEntryFiles', async (): Promise<void> => {
         try {
             expect(
                 basename(Array.from(await getEntryFiles({
@@ -152,7 +152,7 @@ describe('ejs', ():void => {
             console.error(error)
         }
     })
-    test('render', async ():Promise<void> => {
+    test('render', async (): Promise<void> => {
         if (await isFile(targetFilePath))
             await unlink(targetFilePath)
 
@@ -193,8 +193,8 @@ describe('ejs', ():void => {
         */
         await unlink(targetFilePath)
     })
-    test('renderFactory', ():void => {
-        const renderFunction:RenderFunction = renderFactory(
+    test('renderFactory', (): void => {
+        const renderFunction: RenderFunction = renderFactory(
             {ejs: {
                 entryFiles: new Set<string>(),
                 templates: {},
@@ -212,7 +212,7 @@ describe('ejs', ():void => {
             {c: 3} as unknown as RenderOptions
         )
         expect(typeof renderFunction).toStrictEqual('function')
-        expect(():string => renderFunction('a')).toThrow()
+        expect((): string => renderFunction('a')).toThrow()
         renderFunction(
             'dummyPlugin/dummy.txt', {...UTILITY_SCOPE, configuration}
         )

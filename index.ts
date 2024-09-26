@@ -70,8 +70,8 @@ import {
  * @returns Promise resolving to nothing.
  */
 export const postConfigurationHotLoaded = async (
-    state:ChangedConfigurationState
-):Promise<void> => {
+    state: ChangedConfigurationState
+): Promise<void> => {
     if (
         (state as unknown as State)
             .configuration.ejs.renderAfterConfigurationUpdates &&
@@ -86,7 +86,7 @@ export const postConfigurationHotLoaded = async (
  * @param state - Application state.
  * @returns Promise resolving to nothing.
  */
-export const preLoadService = async (state:ServicesState):Promise<void> => {
+export const preLoadService = async (state: ServicesState): Promise<void> => {
     const {configuration: {ejs: configuration}, services} = state
 
     services.ejs = {
@@ -111,27 +111,27 @@ export const preLoadService = async (state:ServicesState):Promise<void> => {
  * @returns Promise resolving to nothing.
  */
 export const shouldExit = async (
-    {configuration: {ejs: {locations}}, services}:State
-):Promise<void> => {
-    if (!(services.ejs as {templates?:Templates}).templates)
+    {configuration: {ejs: {locations}}, services}: State
+): Promise<void> => {
+    if (!(services.ejs as {templates?: Templates}).templates)
         return
 
-    const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
+    const inPlaceReplacementPaths: Array<string> = ([] as Array<string>)
         .concat(locations.inPlaceReplacements as Array<string>)
 
-    const templateOutputRemovingPromises:Array<Promise<boolean>> = []
+    const templateOutputRemovingPromises: Array<Promise<boolean>> = []
     for (const filePath of Object.keys(services.ejs.templates))
         if (!inPlaceReplacementPaths.includes(filePath))
             templateOutputRemovingPromises.push(new Promise<boolean>((
-                resolve:(removed:boolean) => void,
-                reject:(reason:Error) => void
-            ):void => {
-                const newFilePath:string = filePath.substring(
+                resolve: (removed: boolean) => void,
+                reject: (reason: Error) => void
+            ): void => {
+                const newFilePath: string = filePath.substring(
                     0, filePath.length - path.extname(filePath).length
                 )
                 let newFileExists = false
 
-                void (async ():Promise<void> => {
+                void (async (): Promise<void> => {
                     try {
                         newFileExists = await isFile(newFilePath)
                     } catch (error) {
@@ -175,11 +175,11 @@ export const shouldExit = async (
  */
 export const getEntryFiles = async ({
     configuration, plugins, pluginAPI, services: {ejs}
-}:State):Promise<TemplateFiles> => {
+}: State): Promise<TemplateFiles> => {
     if (ejs.entryFiles && !configuration.ejs.reloadEntryFiles)
         return ejs.entryFiles
 
-    const extensions:Array<string> =
+    const extensions: Array<string> =
         ([] as Array<string>).concat(configuration.ejs.extensions)
 
     ejs.entryFiles = new Set<string>()
@@ -188,7 +188,7 @@ export const getEntryFiles = async ({
     ))
         await walkDirectoryRecursively(
             location,
-            (file:File):false|undefined => {
+            (file: File): false|undefined => {
                 if (
                     file.name.startsWith('.') ||
                     pluginAPI.isInLocations(
@@ -206,7 +206,7 @@ export const getEntryFiles = async ({
                         NOTE: We can't use "path.extname()" here since double
                         extensions like ".html.js" should be supported.
                     */
-                    extensions.some((extension:string):boolean =>
+                    extensions.some((extension: string): boolean =>
                         file.name.endsWith(extension)
                     )
                 )
@@ -229,24 +229,24 @@ export const getEntryFiles = async ({
  * @param state - Application state.
  * @returns A promise resolving to nothing.
  */
-export const render = async (state:State):Promise<Scope> => {
+export const render = async (state: State): Promise<Scope> => {
     const {configuration, data, pluginAPI, plugins, services} =
         state
 
-    let scope:Partial<Scope> = extend(
+    let scope: Partial<Scope> = extend(
         true,
         {basePath: configuration.core.context.path},
         configuration.ejs.scope.plain,
         data?.scope || {} as Partial<Scope>
     )
 
-    const currentPath:string = process.cwd()
+    const currentPath: string = process.cwd()
     const now = new Date()
-    const nowUTCTimestamp:number = getUTCTimestamp(now)
+    const nowUTCTimestamp: number = getUTCTimestamp(now)
     for (const type of ['evaluation', 'execution'] as const) {
-        const evaluations:Mapping = configuration.ejs.scope[type]
+        const evaluations: Mapping = configuration.ejs.scope[type]
         for (const [name, expression] of Object.entries(evaluations)) {
-            const currentScope:EvaluateScopeValueScope = {
+            const currentScope: EvaluateScopeValueScope = {
                 ...UTILITY_SCOPE,
                 configuration,
                 currentPath,
@@ -263,7 +263,7 @@ export const render = async (state:State):Promise<Scope> => {
                 webNodePath: __dirname
             }
 
-            const evaluated:EvaluationResult<AnyFunction> =
+            const evaluated: EvaluationResult<AnyFunction> =
                 evaluate<AnyFunction>(
                     expression,
                     currentScope as unknown as Mapping<unknown>,
@@ -291,27 +291,27 @@ export const render = async (state:State):Promise<Scope> => {
     }
 
 
-    const givenData:Data = await pluginAPI.callStack<State, Data>(state)
+    const givenData: Data = await pluginAPI.callStack<State, Data>(state)
     scope = givenData.scope
     services.ejs.entryFiles = givenData.entryFiles
 
-    const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
+    const inPlaceReplacementPaths: Array<string> = ([] as Array<string>)
         .concat(configuration.ejs.locations.inPlaceReplacements)
-    const templateRenderingPromises:Array<Promise<string>> = []
+    const templateRenderingPromises: Array<Promise<string>> = []
 
     for (const filePath of services.ejs.entryFiles)
         templateRenderingPromises.push(new Promise<string>((
-            resolve:(value:string) => void, reject:(reason:Error) => void
-        ):void => {
+            resolve: (value: string) => void, reject: (reason: Error) => void
+        ): void => {
             const currentScope = {...scope} as RuntimeScope
-            const inPlace:boolean = inPlaceReplacementPaths.includes(filePath)
-            const newFilePath:string = inPlace ?
+            const inPlace: boolean = inPlaceReplacementPaths.includes(filePath)
+            const newFilePath: string = inPlace ?
                 filePath :
                 filePath.substring(
                     0, filePath.length - path.extname(filePath).length
                 )
 
-            void (async ():Promise<void> => {
+            void (async (): Promise<void> => {
                 if (
                     inPlace &&
                     configuration.ejs.cacheInPlaceReplacements ||
@@ -326,7 +326,7 @@ export const render = async (state:State):Promise<Scope> => {
 
                     resolve(newFilePath)
                 } else {
-                    const currentOptions:RenderOptions = {
+                    const currentOptions: RenderOptions = {
                         ...copy(configuration.ejs.options),
 
                         filename: path.relative(
@@ -342,7 +342,7 @@ export const render = async (state:State):Promise<Scope> => {
                     ))
                         currentScope.plugins = plugins
 
-                    const render:RenderFunction = services.ejs.renderFactory(
+                    const render: RenderFunction = services.ejs.renderFactory(
                         services,
                         configuration,
                         currentScope,
@@ -417,11 +417,11 @@ export const render = async (state:State):Promise<Scope> => {
  * @returns Render function.
  */
 export const renderFactory = (
-    services:Services,
-    configuration:Configuration,
-    givenScope:GivenScope = {},
-    givenOptions:RenderOptions = {}
-):RenderFunction => {
+    services: Services,
+    configuration: Configuration,
+    givenScope: GivenScope = {},
+    givenOptions: RenderOptions = {}
+): RenderFunction => {
     if (!givenScope.basePath)
         givenScope.basePath = configuration.core.context.path
     if (!givenOptions.preCompiledTemplateFileExtensions)
@@ -429,13 +429,13 @@ export const renderFactory = (
     if (!givenOptions.encoding)
         givenOptions.encoding = 'utf-8'
 
-    const inPlaceReplacementPaths:Array<string> = ([] as Array<string>)
+    const inPlaceReplacementPaths: Array<string> = ([] as Array<string>)
         .concat(configuration.ejs.locations.inPlaceReplacements)
 
-    return (filePath:string, nestedLocals:GivenScope = {}):string => {
-        type NestedOptions = RenderOptions & {encoding:Encoding}
+    return (filePath: string, nestedLocals: GivenScope = {}): string => {
+        type NestedOptions = RenderOptions & {encoding: Encoding}
 
-        let options:NestedOptions = copy(givenOptions) as NestedOptions
+        let options: NestedOptions = copy(givenOptions) as NestedOptions
         delete options.client
         options = extend<NestedOptions>(
             true, options, nestedLocals.options || {}
@@ -445,7 +445,7 @@ export const renderFactory = (
         options.filename =
             path.relative((givenScope as Scope).basePath, filePath)
 
-        const scope:Scope = {...givenScope} as Scope
+        const scope: Scope = {...givenScope} as Scope
         scope.basePath = path.dirname(filePath)
         scope.options = options
         scope.scope = scope
@@ -455,12 +455,12 @@ export const renderFactory = (
             services, configuration, scope, options
         )
 
-        const originalScopeNames:Array<string> = Object.keys(scope)
-        const scopeNames:Array<string> = originalScopeNames.map(
-            (name:string):string => convertToValidVariableName(name)
+        const originalScopeNames: Array<string> = Object.keys(scope)
+        const scopeNames: Array<string> = originalScopeNames.map(
+            (name: string): string => convertToValidVariableName(name)
         )
 
-        let currentFilePath:null|string = null
+        let currentFilePath: null|string = null
         for (const extension of [''].concat(configuration.ejs.extensions))
             if (isFileSync(filePath + extension)) {
                 currentFilePath = filePath + extension
@@ -492,7 +492,7 @@ export const renderFactory = (
                         )
                     }
                 else {
-                    let template:string
+                    let template: string
                     try {
                         template = synchronousFileSystem.readFileSync(
                             currentFilePath,
@@ -518,7 +518,7 @@ export const renderFactory = (
                             enabled
                         */
                         if (options.strict || !options._with) {
-                            let localsName:string =
+                            let localsName: string =
                                 options.localsName || 'locals'
                             while (scopeNames.includes(localsName))
                                 localsName = `_${localsName}`
@@ -565,15 +565,15 @@ export const renderFactory = (
                 result = !options.strict && options._with ?
                     (services.ejs.templates[currentFilePath] as
                         (
-                            scope:Scope,
-                            escape:Scope['escapeFn'],
-                            include:Scope['include']
+                            scope: Scope,
+                            escape: Scope['escapeFn'],
+                            include: Scope['include']
                         ) => string
                     )(scope, scope.escapeFn, scope.include) :
                     // @ts-expect-error An error can occur.
                     services.ejs.templates[currentFilePath](
                         ...originalScopeNames
-                            .map((name:string):unknown => scope[name])
+                            .map((name: string): unknown => scope[name])
                             .concat(options._with ? [] : scope) as
                                 [EJSScope]
                     )
