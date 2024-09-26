@@ -33,28 +33,28 @@ import {
 // endregion
 // region exports
 export type RenderOptions = EJSOptions & {
-    encoding?:Encoding
-    preCompiledTemplateFileExtensions?:Array<string>
+    encoding?: Encoding
+    preCompiledTemplateFileExtensions?: Array<string>
 }
 export type Configuration<ConfigurationType = Mapping<unknown>> =
     BaseConfiguration<{
-        ejs:{
-            cache:boolean
-            cacheInPlaceReplacements:boolean
-            extensions:Array<string>|string
-            locations:{
-                exclude:Array<string>|string
-                include:Array<string>|string
-                inPlaceReplacements:Array<string>|string
+        ejs: {
+            cache: boolean
+            cacheInPlaceReplacements: boolean
+            extensions: Array<string>|string
+            locations: {
+                exclude: Array<string>|string
+                include: Array<string>|string
+                inPlaceReplacements: Array<string>|string
             }
-            options:RenderOptions
-            renderAfterConfigurationUpdates:boolean
-            reloadEntryFiles:boolean
-            reloadSourceContent:boolean
-            scope:{
-                evaluation:Mapping
-                execution:Mapping
-                plain:PlainObject<object|Primitive>
+            options: RenderOptions
+            renderAfterConfigurationUpdates: boolean
+            reloadEntryFiles: boolean
+            reloadSourceContent: boolean
+            scope: {
+                evaluation: Mapping
+                execution: Mapping
+                plain: PlainObject<object|Primitive>
             }
         }
     }> &
@@ -63,57 +63,57 @@ export type Configuration<ConfigurationType = Mapping<unknown>> =
 export type EvaluateScopeValueScope =
     typeof UTILITY_SCOPE &
     {
-        configuration:Configuration
-        currentPath:string
-        fileSystem:typeof import('fs/promises')
-        now:Date
-        nowUTCTimestamp:number
-        parser:typeof import('ejs')
-        path:typeof import('path')
-        pluginAPI:typeof pluginAPI
-        plugins:Array<Plugin>
-        scope:Partial<Scope>
-        synchronousFileSystem:typeof import('fs')
-        template:BasePluginHandler
-        webNodePath:string
+        configuration: Configuration
+        currentPath: string
+        fileSystem: typeof import('fs/promises')
+        now: Date
+        nowUTCTimestamp: number
+        parser: typeof import('ejs')
+        path: typeof import('path')
+        pluginAPI: typeof pluginAPI
+        plugins: Array<Plugin>
+        scope: Partial<Scope>
+        synchronousFileSystem: typeof import('fs')
+        template: BasePluginHandler
+        webNodePath: string
     }
 
 export type RenderFunction =
-    (filePath:string, nestedLocals?:Mapping<unknown>) => string
+    (filePath: string, nestedLocals?: Mapping<unknown>) => string
 
 export type Scope =
     Mapping<unknown> &
     {
-        basePath:string
-        include:RenderFunction
-        options:RenderOptions
-        scope:Scope
+        basePath: string
+        include: RenderFunction
+        options: RenderOptions
+        scope: Scope
     }
 export type GivenScope = RecursivePartial<Scope>
 
-export type RuntimeScope = Scope & {plugins:Array<Plugin>}
+export type RuntimeScope = Scope & {plugins: Array<Plugin>}
 
 export type Services<ServiceType = Mapping<unknown>> =
     BaseServices<{
-        ejs:{
-            entryFiles:null|TemplateFiles
-            templates:Templates
+        ejs: {
+            entryFiles: null|TemplateFiles
+            templates: Templates
 
-            getEntryFiles:(state:State) => Promise<TemplateFiles>
-            render:(state:State) => Promise<Scope>
-            renderFactory:(
-                services:Services,
-                configuration:Configuration,
-                scope:GivenScope,
-                options:RenderOptions
+            getEntryFiles: (state: State) => Promise<TemplateFiles>
+            render: (state: State) => Promise<Scope>
+            renderFactory: (
+                services: Services,
+                configuration: Configuration,
+                scope: GivenScope,
+                options: RenderOptions
             ) => RenderFunction
         }
     }> &
     ServiceType
 
 export interface Data {
-    entryFiles:TemplateFiles
-    scope:Partial<Scope>
+    entryFiles: TemplateFiles
+    scope: Partial<Scope>
 }
 export type ServicesState = BaseServicesState<
     undefined, Configuration, Services
@@ -135,12 +135,12 @@ export interface PluginHandler extends BasePluginHandler {
      * @param state - Application state.
      * @returns Promise resolving to entry files to use.
      */
-    preEjsRender?(state:State):Promise<Data>
+    preEjsRender?(state: State): Promise<Data>
     /**
      * Hook after rendering templates.
      * @param state - Application state.
      * @returns Promise resolving to scope to use for evaluation.
      */
-    postEjsRender?(state:State):Promise<void>
+    postEjsRender?(state: State): Promise<void>
 }
 // endregion
