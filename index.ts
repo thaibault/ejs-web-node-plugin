@@ -31,6 +31,7 @@ import {
     isFile,
     isFileSync,
     Mapping,
+    PositiveEvaluationResult,
     represent,
     UTILITY_SCOPE,
     walkDirectoryRecursively
@@ -276,7 +277,8 @@ export const render = async (state: State): Promise<Scope> => {
                     `configuration for "${name}": ${evaluated.error}`
                 )
             else
-                (scope as Mapping<AnyFunction>)[name] = evaluated.result
+                (scope as Mapping<AnyFunction>)[name] =
+                    (evaluated as PositiveEvaluationResult<AnyFunction>).result
         }
     }
 
