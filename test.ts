@@ -78,6 +78,7 @@ describe('ejs', (): void => {
         try {
             await postConfigurationHotLoaded({
                 configuration,
+                data: undefined,
                 hook: 'postConfigurationHotLoaded',
                 pluginAPI,
                 plugins: [],
@@ -95,6 +96,7 @@ describe('ejs', (): void => {
 
         await expect(preLoadService({
             configuration,
+            data: undefined,
             hook: 'preLoadService',
             pluginAPI,
             plugins: [],
@@ -118,6 +120,7 @@ describe('ejs', (): void => {
         try {
             await shouldExit({
                 configuration,
+                data: undefined,
                 hook: 'shouldExit',
                 pluginAPI,
                 plugins: [],
@@ -138,6 +141,7 @@ describe('ejs', (): void => {
             expect(
                 basename(Array.from(await getEntryFiles({
                     configuration,
+                    data: undefined,
                     hook: '',
                     pluginAPI,
                     plugins: [],
@@ -167,6 +171,7 @@ describe('ejs', (): void => {
 
         await expect(render({
             configuration,
+            data: undefined,
             hook: '',
             pluginAPI,
             plugins: [],
