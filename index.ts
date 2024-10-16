@@ -189,7 +189,7 @@ export const getEntryFiles = async ({
     ))
         await walkDirectoryRecursively(
             location,
-            (file: File): false|undefined => {
+            (file: File): false | undefined => {
                 if (
                     file.name.startsWith('.') ||
                     pluginAPI.isInLocations(
@@ -462,7 +462,7 @@ export const renderFactory = (
             (name: string): string => convertToValidVariableName(name)
         )
 
-        let currentFilePath: null|string = null
+        let currentFilePath: null | string = null
         for (const extension of [''].concat(configuration.ejs.extensions))
             if (isFileSync(filePath + extension)) {
                 currentFilePath = filePath + extension
