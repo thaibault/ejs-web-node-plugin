@@ -41,11 +41,11 @@ export type Configuration<ConfigurationType = Mapping<unknown>> =
         ejs: {
             cache: boolean
             cacheInPlaceReplacements: boolean
-            extensions: Array<string>|string
+            extensions: Array<string> | string
             locations: {
-                exclude: Array<string>|string
-                include: Array<string>|string
-                inPlaceReplacements: Array<string>|string
+                exclude: Array<string> | string
+                include: Array<string> | string
+                inPlaceReplacements: Array<string> | string
             }
             options: RenderOptions
             renderAfterConfigurationUpdates: boolean
@@ -54,7 +54,7 @@ export type Configuration<ConfigurationType = Mapping<unknown>> =
             scope: {
                 evaluation: Mapping
                 execution: Mapping
-                plain: PlainObject<object|Primitive>
+                plain: PlainObject<object | Primitive>
             }
         }
     }> &
@@ -96,7 +96,7 @@ export type RuntimeScope = Scope & {plugins: Array<Plugin>}
 export type Services<ServiceType = Mapping<unknown>> =
     BaseServices<{
         ejs: {
-            entryFiles: null|TemplateFiles
+            entryFiles: null | TemplateFiles
             templates: Templates
 
             getEntryFiles: (state: State) => Promise<TemplateFiles>
@@ -119,7 +119,7 @@ export type ServicesState = BaseServicesState<
     undefined, Configuration, Services
 >
 export type State = BaseServicePromisesState<
-    Partial<Data>|undefined,
+    Partial<Data> | undefined,
     Configuration,
     Services,
     ServicePromises
@@ -127,7 +127,7 @@ export type State = BaseServicePromisesState<
 
 export type TemplateFiles = Set<string>
 export type TemplateFunction = EJSTemplateFunction
-export type Templates = Mapping<null|TemplateFunction>
+export type Templates = Mapping<null | TemplateFunction>
 
 export interface PluginHandler extends BasePluginHandler {
     /**
