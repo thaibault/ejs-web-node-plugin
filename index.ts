@@ -588,7 +588,7 @@ export const renderFactory = (
                         scopeDescription =
                             scopeDescription.substring(0, 997) + '...'
                     scopeDescription = ` scope ${scopeDescription} against`
-                } catch (_error) {
+                } catch {
                     // Ignore error.
                 }
 
