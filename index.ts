@@ -293,7 +293,7 @@ export const render = async (state: State): Promise<Scope> => {
     }
 
 
-    const givenData: Data = await pluginAPI.callStack<State, Data>(state)
+    const givenData = await pluginAPI.callStack<State, Data>(state) as Data
     scope = givenData.scope
     services.ejs.entryFiles = givenData.entryFiles
 
