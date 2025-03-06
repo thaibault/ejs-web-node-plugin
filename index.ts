@@ -546,7 +546,8 @@ export const renderFactory = (
                                         ]?.toString() ?? '""'
                                     ) +
                                     `(${localsName},` +
-                                    `${localsName}.escapeFn,include,` +
+                                    `${localsName}.escapeFn,` +
+                                    `${localsName}.include,` +
                                     `${localsName}.rethrow)`
                                 ) as TemplateFunction
                                 /*
