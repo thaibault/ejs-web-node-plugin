@@ -1,16 +1,16 @@
-<%- configuration.name %>
+<%- _.configuration.name %>
 =========================
 
 Tests:
 ------
 
-<%- string.compressStyleValue('border  1 px solid  red') %>
+<%- _.string.compressStyleValue('border  1 px solid  red') %>
 
 Configurations:
 ---------------
 
-<%_ for (var key in configuration) { _%>
-    - "<%- key %>" -> <%- typeof configuration[key] === 'string' ? configuration[key] : object.represent(configuration[key]) %>
+<%_ for (var key in _.configuration) { _%>
+    - "<%- key %>" -> <%- typeof _.configuration[key] === 'string' ? _.configuration[key] : _.object.represent(_.configuration[key]) %>
 <%_ } _%>
 
 <%_
@@ -20,12 +20,12 @@ Configurations:
 _%>
 <%- list.join(', ') %>
 
-data = <%- object.convertCircularObjectToJSON(typeof mockupData === 'undefined' ? {} : mockupData) %>;
+data = <%- _.object.convertCircularObjectToJSON(typeof _.mockupData === 'undefined' ? {} : _.mockupData) %>;
 
 <%_ let includedVariable = 1 _%>
 
-<%- include('dummyInclude.txt', {includedVariable: 2}) %>
+<%- _.include('dummyInclude.txt', {includedVariable: 2}) %>
 
 <%_ const name = 'Include' _%>
 
-<%- include(`dummy${name}.txt`, {includedVariable}) %>
+<%- _.include(`dummy${name}.txt`, {includedVariable}) %>

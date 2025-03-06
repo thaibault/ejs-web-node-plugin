@@ -142,7 +142,7 @@
           "synchronousFileSystem": "synchronousFileSystem",
           "array": "array",
           "datetime": "datetime",
-          "filesystem": "filesystem",
+          "fileSystemUtility": "fileSystemUtility",
           "functions": "functions",
           "indicators": "indicators",
           "number": "number",

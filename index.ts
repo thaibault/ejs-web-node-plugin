@@ -33,7 +33,7 @@ import {
     Mapping,
     PositiveEvaluationResult,
     represent,
-    UTILITY_SCOPE,
+    UTILITY_SCOPE as BASE_UTILITY_SCOPE,
     walkDirectoryRecursively
 } from 'clientnode'
 import ejs, {Data as EJSScope} from 'ejs'
@@ -55,9 +55,16 @@ import {
     ServicesState,
     State,
     TemplateFiles,
-    TemplateFunction, Templates
+    TemplateFunction,
+    Templates,
+    UtilityScope
 } from './type'
 // endregion
+export const UTILITY_SCOPE: UtilityScope = {
+    ...BASE_UTILITY_SCOPE, fileSystemUtility: BASE_UTILITY_SCOPE.filesystem
+}
+// @ts-expect-error No better way to modify an object with procedural code.
+delete UTILITY_SCOPE.filesystem
 /**
  * Renders all templates again configuration object and re-renders them after
  * configurations changes.
