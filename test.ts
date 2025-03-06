@@ -15,9 +15,7 @@
 */
 // region imports
 import {beforeAll, describe, expect, test} from '@jest/globals'
-import {
-    copy, extend, identity, isFile, RecursivePartial, UTILITY_SCOPE
-} from 'clientnode'
+import {copy, extend, identity, isFile, RecursivePartial} from 'clientnode'
 import {open, unlink} from 'fs/promises'
 import {basename} from 'path'
 import {configuration as baseConfiguration, loadAll, pluginAPI} from 'web-node'
@@ -28,12 +26,11 @@ import {
     preLoadService,
     render,
     renderFactory,
-    shouldExit
+    shouldExit,
+    UTILITY_SCOPE
 } from './index'
 import packageConfiguration from './package.json'
-import {
-    Configuration, RenderFunction, RenderOptions, Scope, Services
-} from './type'
+import {Configuration, RenderFunction, Scope, Services} from './type'
 // endregion
 describe('ejs', (): void => {
     // region mockup
@@ -213,8 +210,15 @@ describe('ejs', (): void => {
                 copy(configuration),
                 {core: {context: {path: './'}}} as Configuration
             ),
-            {b: 2} as unknown as Scope,
-            {c: 3} as unknown as RenderOptions
+            {a: 2} as unknown as Scope,
+            {
+                cache: false,
+                compileDebug: false,
+                debug: false,
+                localsName: '_',
+                strict: true,
+                _with: false
+            }
         )
         expect(typeof renderFunction).toStrictEqual('function')
         expect((): string => renderFunction('a')).toThrow()

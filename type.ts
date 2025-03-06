@@ -60,8 +60,11 @@ export type Configuration<ConfigurationType = Mapping<unknown>> =
     }> &
     ConfigurationType
 
+export type UtilityScope =
+    Omit<typeof UTILITY_SCOPE, 'filesystem'> &
+    {fileSystemUtility: typeof UTILITY_SCOPE['filesystem'] }
 export type EvaluateScopeValueScope =
-    typeof UTILITY_SCOPE &
+    UtilityScope &
     {
         configuration: Configuration
         currentPath: string
