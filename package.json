@@ -122,7 +122,7 @@
         "debug": {
           "__evaluate__": "self.debug"
         },
-        "localsName": "scope",
+        "localsName": "_",
         "strict": true,
         "_with": false
       },
