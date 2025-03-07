@@ -477,6 +477,14 @@ export const renderFactory = (
             }
 
         if (currentFilePath) {
+            const explodeScopeNames =
+                !options.preCompiledTemplateFileExtensions?.includes(
+                    path.extname(currentFilePath)
+                ) &&
+                !options._with
+            if (options._with)
+                options.strict = false
+
             if (
                 configuration.ejs.reloadSourceContent &&
                 !inPlaceReplacementPaths.includes(filePath) ||
@@ -515,20 +523,20 @@ export const renderFactory = (
                         )
                     }
 
-                    if (options.strict || !options._with)
-                        // NOTE: Needed to manipulate code after compiling.
+                    if (!options._with)
                         options.client = true
 
                     try {
                         services.ejs.templates[currentFilePath] =
                             ejs.compile(template, options) as TemplateFunction
                         /*
-                            Provide all scope names when "_with" options isn't
-                            enabled
+                            Provide all scope names via a dynamically created
+                            function when "_with" options isn't enabled to be
+                            able to access all scope names directly.
                         */
-                        if (options.strict || !options._with) {
+                        if (!options._with) {
                             let localsName: string =
-                                options.localsName || 'locals'
+                                options.localsName || 'scope'
                             while (scopeNames.includes(localsName))
                                 localsName = `_${localsName}`
                             services.ejs.templates[currentFilePath] =
@@ -570,23 +578,23 @@ export const renderFactory = (
                     NOTE: We want to be sure to have same ordering as we have
                     for the scope names and to call internal registered getter
                     by retrieving values. So simple using
-                    "...Object.values(scope)" is not appreciate here.
+                    "...Object.values(scope)" is not useful here.
                 */
-                result = !options.strict && options._with ?
-                    (services.ejs.templates[currentFilePath] as
-                        (
-                            scope: Scope,
-                            escape: Scope['escapeFn'],
-                            include: Scope['include']
-                        ) => string
-                    )(scope, scope.escapeFn, scope.include) :
+                result = explodeScopeNames ?
                     // @ts-expect-error An error can occur.
                     services.ejs.templates[currentFilePath](
                         ...originalScopeNames
                             .map((name: string): unknown => scope[name])
                             .concat(options._with ? [] : scope) as
                                 [EJSScope]
-                    )
+                    ) :
+                    (services.ejs.templates[currentFilePath] as
+                        (
+                            scope: Scope,
+                            escape: Scope['escapeFn'],
+                            include: Scope['include']
+                        ) => string
+                    )(scope, scope.escapeFn, scope.include)
             } catch (error) {
                 let scopeDescription = ''
 
