@@ -25,6 +25,7 @@ Project status
 
 [![code coverage](https://img.shields.io/coverallsCoverage/github/thaibault/ejs-web-node-plugin?label=code%20coverage&style=for-the-badge)](https://coveralls.io/github/thaibault/ejs-web-node-plugin)
 
+[![deploy documentation website](https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/deploy-documentation-website.yaml?label=deploy%20documentation%20website&style=for-the-badge)](https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/deploy-documentation-website.yaml)
 [![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/ejs-web-node-plugin.svg?label=documentation-website&style=for-the-badge)](https://torben.website/ejs-web-node-plugin)
 
 Use case
