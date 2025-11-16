@@ -30,6 +30,7 @@ import {
     getUTCTimestamp,
     isFile,
     isFileSync,
+    Logger,
     Mapping,
     PositiveEvaluationResult,
     represent,
@@ -40,7 +41,6 @@ import ejs, {Data as EJSScope} from 'ejs'
 import fileSystem, {unlink} from 'fs/promises'
 import synchronousFileSystem from 'fs'
 import path from 'path'
-import {log} from 'web-node'
 import {ChangedConfigurationState, PluginHandler} from 'web-node/type'
 
 import {
@@ -66,6 +66,8 @@ export const UTILITY_SCOPE: UtilityScope = {
 }
 // @ts-expect-error No better way to modify an object with procedural code.
 delete UTILITY_SCOPE.filesystem
+
+export const log = new Logger({name: 'web-node.ejs'})
 /**
  * Renders all templates again configuration object and re-renders them after
  * configurations changes.
