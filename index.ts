@@ -40,6 +40,7 @@ import ejs, {Data as EJSScope} from 'ejs'
 import fileSystem, {unlink} from 'fs/promises'
 import synchronousFileSystem from 'fs'
 import path from 'path'
+import {log} from 'web-node'
 import {ChangedConfigurationState, PluginHandler} from 'web-node/type'
 
 import {
@@ -279,8 +280,8 @@ export const render = async (state: State): Promise<Scope> => {
                 )
 
             if (evaluated.error)
-                console.warn(
-                    'Error occurred during processing given template scope ' +
+                log.warn(
+                    'Error occurred during processing given template scope',
                     `configuration for "${name}": ${evaluated.error}`
                 )
             else
@@ -328,8 +329,8 @@ export const render = async (state: State): Promise<Scope> => {
                     configuration.ejs.cache &&
                     await isFile(newFilePath)
                 ) {
-                    console.info(
-                        `Template: Use cached file ("${newFilePath}") for ` +
+                    log.info(
+                        `Template: Use cached file ("${newFilePath}") for`,
                         `"${filePath}".`
                     )
 
@@ -363,9 +364,9 @@ export const render = async (state: State): Promise<Scope> => {
                         result = render(filePath)
                     } catch (error) {
                         if (inPlace) {
-                            console.warn(
-                                'Error during running in-place ' +
-                                `replacement template file "${filePath}": ` +
+                            log.warn(
+                                'Error during running in-place',
+                                `replacement template file "${filePath}":`,
                                 represent(error)
                             )
 
@@ -399,9 +400,9 @@ export const render = async (state: State): Promise<Scope> => {
                             */
                         }
                     else {
-                        console.warn(
-                            'An empty template processing result detected ' +
-                            `for file "${newFilePath}" with input file ` +
+                        log.warn(
+                            'An empty template processing result detected',
+                            `for file "${newFilePath}" with input file`,
                             `"${filePath}".`
                         )
 
