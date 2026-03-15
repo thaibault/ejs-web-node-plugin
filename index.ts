@@ -19,7 +19,6 @@
 // region imports
 import {
     AnyFunction,
-    convertToValidVariableName,
     copy,
     currentRequire,
     Encoding,
@@ -37,7 +36,7 @@ import {
     UTILITY_SCOPE as BASE_UTILITY_SCOPE,
     walkDirectoryRecursively
 } from 'clientnode'
-import ejs, {Data as EJSScope} from 'ejs'
+import ejs from 'ejs'
 import fileSystem, {unlink} from 'fs/promises'
 import synchronousFileSystem from 'fs'
 import path from 'path'
@@ -361,7 +360,7 @@ export const render = async (state: State): Promise<Scope> => {
                         currentOptions
                     )
 
-                    let result = ''
+                    let result
                     try {
                         result = render(filePath)
                     } catch (error) {
@@ -467,11 +466,6 @@ export const renderFactory = (
             services, configuration, scope, options
         )
 
-        const originalScopeNames: Array<string> = Object.keys(scope)
-        const scopeNames: Array<string> = originalScopeNames.map(
-            (name: string): string => convertToValidVariableName(name)
-        )
-
         let currentFilePath: null | string = null
         for (const extension of [''].concat(configuration.ejs.extensions))
             if (isFileSync(filePath + extension)) {
@@ -480,14 +474,6 @@ export const renderFactory = (
             }
 
         if (currentFilePath) {
-            const explodeScopeNames =
-                !options.preCompiledTemplateFileExtensions?.includes(
-                    path.extname(currentFilePath)
-                ) &&
-                !options._with
-            if (options._with)
-                options.strict = false
-
             if (
                 configuration.ejs.reloadSourceContent &&
                 !inPlaceReplacementPaths.includes(filePath) ||
@@ -508,7 +494,8 @@ export const renderFactory = (
                     } catch (error) {
                         throw new Error(
                             'Error occurred during loading script module: ' +
-                            `"${currentFilePath}": ${represent(error)}`
+                            `"${currentFilePath}": ${represent(error)}`,
+                            {cause: error}
                         )
                     }
                 else {
@@ -522,75 +509,27 @@ export const renderFactory = (
                         throw new Error(
                             'Error occurred during loading template file ' +
                             `"${currentFilePath}" from file system: ` +
-                            represent(error)
+                            represent(error),
+                            {cause: error}
                         )
                     }
-
-                    if (!options._with)
-                        options.client = true
 
                     try {
                         services.ejs.templates[currentFilePath] =
                             ejs.compile(template, options) as TemplateFunction
-                        /*
-                            Provide all scope names via a dynamically created
-                            function when "_with" options isn't enabled to be
-                            able to access all scope names directly.
-                        */
-                        if (!options._with) {
-                            let localsName: string =
-                                options.localsName || 'scope'
-                            while (scopeNames.includes(localsName))
-                                localsName = `_${localsName}`
-                            services.ejs.templates[currentFilePath] =
-                                /*
-                                    eslint-disable
-                                    @typescript-eslint/no-implied-eval
-                                */
-                                new Function(
-                                    ...scopeNames,
-                                    localsName,
-                                    'return ' +
-                                    (
-                                        services.ejs.templates[
-                                            currentFilePath
-                                        ]?.toString() ?? '""'
-                                    ) +
-                                    `(${localsName},` +
-                                    `${localsName}.escapeFn,` +
-                                    `${localsName}.include,` +
-                                    `${localsName}.rethrow)`
-                                ) as TemplateFunction
-                                /*
-                                    eslint-enable
-                                    @typescript-eslint/no-implied-eval
-                                */
-                        }
                     } catch (error) {
                         throw new Error(
                             'Error occurred during compiling template file ' +
                             `"${currentFilePath}" with base path ` +
-                            `"${scope.basePath}": ${represent(error)}`
+                            `"${scope.basePath}": ${represent(error)}`,
+                            {cause: error}
                         )
                     }
                 }
 
-            let result = ''
+            let result
             try {
-                /*
-                    NOTE: We want to be sure to have same ordering as we have
-                    for the scope names and to call internal registered getter
-                    by retrieving values. So simple using
-                    "...Object.values(scope)" is not useful here.
-                */
-                result = explodeScopeNames ?
-                    // @ts-expect-error An error can occur.
-                    services.ejs.templates[currentFilePath](
-                        ...originalScopeNames
-                            .map((name: string): unknown => scope[name])
-                            .concat(options._with ? [] : scope) as
-                                [EJSScope]
-                    ) :
+                result =
                     (services.ejs.templates[currentFilePath] as
                         (
                             scope: Scope,
@@ -614,7 +553,8 @@ export const renderFactory = (
                 throw new Error(
                     'Error occurred during running template' +
                     `${scopeDescription} file "${currentFilePath}": ` +
-                    represent(error)
+                    represent(error),
+                    {cause: error}
                 )
             }
 
