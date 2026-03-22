@@ -447,7 +447,6 @@ export const renderFactory = (
         type NestedOptions = RenderOptions & {encoding: Encoding}
 
         let options: NestedOptions = copy(givenOptions) as NestedOptions
-        delete options.client
         options = extend<NestedOptions>(
             true, options, nestedLocals.options || {}
         )
