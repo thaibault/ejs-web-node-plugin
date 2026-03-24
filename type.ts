@@ -25,7 +25,6 @@ import {
     Configuration as BaseConfiguration,
     Plugin,
     PluginHandler as BasePluginHandler,
-    ServicePromises,
     ServicePromisesState as BaseServicePromisesState,
     Services as BaseServices,
     ServicesState as BaseServicesState
@@ -124,8 +123,7 @@ export type ServicesState = BaseServicesState<
 export type State = BaseServicePromisesState<
     Partial<Data> | undefined,
     Configuration,
-    Services,
-    ServicePromises
+    Services
 >
 
 export type TemplateFiles = Set<string>
