@@ -415,7 +415,9 @@ export const render = async (state: State): Promise<Scope> => {
 
     await Promise.all(templateRenderingPromises)
 
+    /* eslint-disable @typescript-eslint/no-unnecessary-type-arguments */
     await pluginAPI.callStack<State>({...state, hook: 'postEjsRender'})
+    /* eslint-enable @typescript-eslint/no-unnecessary-type-arguments */
 
     return scope as Scope
 }
@@ -447,9 +449,11 @@ export const renderFactory = (
         type NestedOptions = RenderOptions & {encoding: Encoding}
 
         let options: NestedOptions = copy(givenOptions) as NestedOptions
+        /* eslint-disable @typescript-eslint/no-unnecessary-type-arguments */
         options = extend<NestedOptions>(
             true, options, nestedLocals.options || {}
         )
+        /* eslint-enable @typescript-eslint/no-unnecessary-type-arguments */
 
         filePath = path.resolve((givenScope as Scope).basePath, filePath)
         options.filename =

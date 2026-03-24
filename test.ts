@@ -38,7 +38,7 @@ describe('ejs', (): void => {
     let configuration: Configuration
 
     beforeAll(async (): Promise<void> => {
-        configuration = extend<Configuration>(
+        configuration = extend(
             true,
             (await loadAll(copy(baseConfiguration)))
                 .configuration as Configuration
