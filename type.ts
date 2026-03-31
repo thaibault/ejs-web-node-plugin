@@ -121,9 +121,7 @@ export type ServicesState = BaseServicesState<
     undefined, Configuration, Services
 >
 export type State = BaseServicePromisesState<
-    Partial<Data> | undefined,
-    Configuration,
-    Services
+    Partial<Data> | undefined, Configuration, Services
 >
 
 export type TemplateFiles = Set<string>

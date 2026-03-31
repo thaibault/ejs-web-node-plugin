@@ -301,7 +301,6 @@ export const render = async (state: State): Promise<Scope> => {
         hook: 'preEjsRender'
     }
 
-
     const givenData = await pluginAPI.callStack<State, Data>(state) as Data
     scope = givenData.scope
     services.ejs.entryFiles = givenData.entryFiles
@@ -375,7 +374,9 @@ export const render = async (state: State): Promise<Scope> => {
                             return
                         }
 
-                        throw error
+                        /* eslint-disable prefer-promise-reject-errors */
+                        reject(error as Error)
+                        /* eslint-enable prefer-promise-reject-errors */
                     }
 
                     if (result)
