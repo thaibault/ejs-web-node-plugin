@@ -41,7 +41,7 @@
     "test": "yarn clear && weboptimizer test",
     "test:coverage": "yarn clear && weboptimizer test:coverage",
     "test:coverage:report": "yarn clear && weboptimizer test:coverage:report",
-    "update:documentation": "documentation-website",
+    "update:documentation": "web-documentation",
     "watch": "weboptimizer build --watch"
   },
   "dependencies": {
@@ -58,7 +58,7 @@
     "@typescript-eslint/eslint-plugin": "^8.58.0",
     "@typescript-eslint/parser": "^8.58.0",
     "clientnode": "^4.0.1369",
-    "documentation-website": "^1.0.401",
+    "web-documentation": "^1.0.0",
     "eslint": "^10.1.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jsdoc": "^62.8.1",
