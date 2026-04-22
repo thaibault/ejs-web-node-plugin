@@ -30,7 +30,7 @@ import {
     UTILITY_SCOPE
 } from './index'
 import packageConfiguration from './package.json'
-import {Configuration, RenderFunction, Scope, Services} from './type'
+import {Configuration, RenderFunction, Services} from './type'
 // endregion
 describe('ejs', (): void => {
     // region mockup
@@ -180,7 +180,7 @@ describe('ejs', (): void => {
                 getEntryFiles,
                 render,
                 renderFactory
-            }} as unknown as Services
+            }}
         })).resolves.toHaveProperty('functions.identity', identity)
 
         await expect(isFile(targetFilePath)).resolves.toStrictEqual(true)
@@ -210,7 +210,7 @@ describe('ejs', (): void => {
                 copy(configuration),
                 {core: {context: {path: './'}}} as Configuration
             ),
-            {a: 2} as unknown as Scope,
+            {a: 2},
             {
                 cache: false,
                 compileDebug: false,
