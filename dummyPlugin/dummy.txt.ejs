@@ -24,8 +24,8 @@ data = <%- _.object.convertCircularObjectToJSON(typeof _.mockupData === 'undefin
 
 <%_ let includedVariable = 1 _%>
 
-<%- _.include('dummyInclude.txt', {includedVariable: 2}) %>
+<%- await _.include('dummyInclude.txt', {includedVariable: 2}) %>
 
 <%_ const name = 'Include' _%>
 
-<%- _.include(`dummy${name}.txt`, {includedVariable}) %>
+<%- await _.include(`dummy${name}.txt`, {includedVariable}) %>
