@@ -20,12 +20,12 @@
 import {
     AnyFunction,
     copy,
-    currentRequire,
     Encoding,
     evaluate,
     EvaluationResult,
     extend,
     File,
+    getCurrentRequire,
     getUTCTimestamp,
     isFile,
     isFileSync,
@@ -60,6 +60,8 @@ import {
     UtilityScope
 } from './type'
 // endregion
+export const currentRequire = await getCurrentRequire()
+
 export const UTILITY_SCOPE: UtilityScope = {
     ...BASE_UTILITY_SCOPE, fileSystemUtility: BASE_UTILITY_SCOPE.filesystem
 }
