@@ -11,42 +11,29 @@
     License
     -------
 
-    This library written by Torben Sickert stand under a creative commons
+    This library written by Torben Sickert stands under a creative commons
     naming 3.0 unported license.
     See https://creativecommons.org/licenses/by/3.0/deed.de
     endregion
 */
 // region imports
-import {
+import type {
     AnyFunction,
-    copy,
-    currentRequire,
     Encoding,
-    evaluate,
     EvaluationResult,
-    extend,
     File,
-    getUTCTimestamp,
-    isFile,
-    isFileSync,
-    Logger,
     Mapping,
-    PositiveEvaluationResult,
-    represent,
-    UTILITY_SCOPE as BASE_UTILITY_SCOPE,
-    walkDirectoryRecursively
+    PositiveEvaluationResult
 } from 'clientnode'
-import ejs from 'ejs'
-import fileSystem, {unlink} from 'fs/promises'
-import synchronousFileSystem from 'fs'
-import path from 'path'
-import {ChangedConfigurationState, PluginHandler} from 'web-node/type'
 
-import {
+import type {ChangedConfigurationState} from 'web-node/type'
+
+import type {
     Configuration,
     Data,
     EvaluateScopeValueScope,
     GivenScope,
+    PluginHandler,
     RenderFunction,
     RenderOptions,
     RuntimeScope,
@@ -59,6 +46,21 @@ import {
     Templates,
     UtilityScope
 } from './type'
+
+import {
+    copy,
+    evaluate,
+    extend,
+    getUTCTimestamp,
+    isFile,
+    Logger,
+    represent,
+    UTILITY_SCOPE as BASE_UTILITY_SCOPE,
+    walkDirectoryRecursively
+} from 'clientnode'
+import ejs from 'ejs'
+import fileSystem, {readFile, unlink} from 'fs/promises'
+import path from 'path'
 // endregion
 export const UTILITY_SCOPE: UtilityScope = {
     ...BASE_UTILITY_SCOPE, fileSystemUtility: BASE_UTILITY_SCOPE.filesystem
@@ -103,9 +105,9 @@ export const preLoadService = async (state: ServicesState): Promise<void> => {
         entryFiles: null,
         templates: {},
 
-        getEntryFiles: getEntryFiles,
-        render: render,
-        renderFactory: renderFactory
+        getEntryFiles,
+        render,
+        renderFactory
     }
 
     if (configuration.renderAfterConfigurationUpdates)
@@ -268,7 +270,6 @@ export const render = async (state: State): Promise<Scope> => {
                 pluginAPI,
                 plugins,
                 scope,
-                synchronousFileSystem,
                 template,
                 webNodePath: __dirname
             }
@@ -361,7 +362,7 @@ export const render = async (state: State): Promise<Scope> => {
 
                     let result
                     try {
-                        result = render(filePath)
+                        result = await render(filePath)
                     } catch (error) {
                         if (inPlace) {
                             log.warn(
@@ -444,7 +445,9 @@ export const renderFactory = (
     const inPlaceReplacementPaths: Array<string> = ([] as Array<string>)
         .concat(configuration.ejs.locations.inPlaceReplacements)
 
-    return (filePath: string, nestedLocals: GivenScope = {}): string => {
+    return async (
+        filePath: string, nestedLocals: GivenScope = {}
+    ): Promise<string> => {
         type NestedOptions = RenderOptions & {encoding: Encoding}
 
         let options: NestedOptions = copy(givenOptions) as NestedOptions
@@ -467,7 +470,7 @@ export const renderFactory = (
 
         let currentFilePath: null | string = null
         for (const extension of [''].concat(configuration.ejs.extensions))
-            if (isFileSync(filePath + extension)) {
+            if (await isFile(filePath + extension)) {
                 currentFilePath = filePath + extension
                 break
             }
@@ -488,8 +491,8 @@ export const renderFactory = (
                 ))
                     try {
                         services.ejs.templates[currentFilePath] =
-                            // @ts-expect-error "currentRequire" is optional.
-                            currentRequire(currentFilePath) as TemplateFunction
+                            (await import(currentFilePath)).default as
+                                TemplateFunction
                     } catch (error) {
                         throw new Error(
                             'Error occurred during loading script module: ' +
@@ -500,7 +503,7 @@ export const renderFactory = (
                 else {
                     let template: string
                     try {
-                        template = synchronousFileSystem.readFileSync(
+                        template = await readFile(
                             currentFilePath,
                             {encoding: options.encoding}
                         )
@@ -529,12 +532,12 @@ export const renderFactory = (
             let result
             try {
                 result =
-                    (services.ejs.templates[currentFilePath] as
+                    await (services.ejs.templates[currentFilePath] as
                         (
                             scope: Scope,
                             escape: Scope['escapeFn'],
                             include: Scope['include']
-                        ) => string
+                        ) => Promise<string>
                     )(scope, scope.escapeFn, scope.include)
             } catch (error) {
                 let scopeDescription = ''
@@ -588,5 +591,13 @@ export const renderFactory = (
 }
 // endregion
 
-export const template = module.exports satisfies PluginHandler
+export const template = {
+    postConfigurationHotLoaded,
+    preLoadService,
+    shouldExit,
+
+    getEntryFiles,
+    render,
+    renderFactory
+} as PluginHandler
 export default template

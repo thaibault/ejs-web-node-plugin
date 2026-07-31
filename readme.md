@@ -6,7 +6,7 @@ Copyright Torben Sickert (info["~at~"]torben.website) 16.12.2012
 License
 -------
 
-This library written by Torben Sickert stand under a creative commons naming
+This library written by Torben Sickert stands under a creative commons naming
 3.0 unported license. See https://creativecommons.org/licenses/by/3.0/deed.de
 endregion -->
 
@@ -26,7 +26,7 @@ Project status
 [![code coverage](https://img.shields.io/coverallsCoverage/github/thaibault/ejs-web-node-plugin?label=code%20coverage&style=for-the-badge)](https://coveralls.io/github/thaibault/ejs-web-node-plugin)
 
 [![deploy web documentation](https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/deploy-web-documentation.yaml?label=deploy%20web%20documentation&style=for-the-badge)](https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/deploy-web-documentation.yaml)
-[![documentation website](https://img.shields.io/website-up-down-green-red/https/torben.website/ejs-web-node-plugin.svg?label=documentation-website&style=for-the-badge)](https://torben.website/ejs-web-node-plugin)
+[![web documentation](https://img.shields.io/website-up-down-green-red/https/torben.website/ejs-web-node-plugin.svg?label=web-documentation&style=for-the-badge)](https://torben.website/ejs-web-node-plugin)
 
 Use case
 --------

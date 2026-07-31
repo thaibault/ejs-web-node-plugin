@@ -8,20 +8,20 @@
     License
     -------
 
-    This library written by Torben Sickert stand under a creative commons
+    This library written by Torben Sickert stands under a creative commons
     naming 3.0 unported license.
     See https://creativecommons.org/licenses/by/3.0/deed.de
     endregion
 */
 // region imports
-import {
+import type {
     Encoding, Mapping, PlainObject, Primitive, RecursivePartial, UTILITY_SCOPE
 } from 'clientnode'
 import {
-    Options as EJSOptions, TemplateFunction as EJSTemplateFunction
+    Options as EJSOptions, AsyncTemplateFunction as EJSTemplateFunction
 } from 'ejs'
-import {pluginAPI} from 'web-node'
-import {
+import type {pluginAPI} from 'web-node'
+import type {
     Configuration as BaseConfiguration,
     Plugin,
     PluginHandler as BasePluginHandler,
@@ -75,13 +75,12 @@ export type EvaluateScopeValueScope =
         pluginAPI: typeof pluginAPI
         plugins: Array<Plugin>
         scope: Partial<Scope>
-        synchronousFileSystem: typeof import('fs')
         template: BasePluginHandler
         webNodePath: string
     }
 
 export type RenderFunction =
-    (filePath: string, nestedLocals?: Mapping<unknown>) => string
+    (filePath: string, nestedLocals?: Mapping<unknown>) => Promise<string>
 
 export type Scope =
     Mapping<unknown> &
