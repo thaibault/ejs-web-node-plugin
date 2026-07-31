@@ -1690,13 +1690,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "@babel/runtime@npm:8.0.0"
-  checksum: 10c0/450857cf52b3a3935d4aad505277201361c86185dad3bdd2ae083d78b76c6265c7fc7610e170c80de1b825d5bfdcfb50697f0853fff922b2661c91cff1fbbd81
-  languageName: node
-  linkType: hard
-
 "@babel/template@npm:^7.22.15, @babel/template@npm:^7.23.9":
   version: 7.23.9
   resolution: "@babel/template@npm:7.23.9"
@@ -5046,7 +5039,6 @@ __metadata:
   resolution: "ejs-web-node-plugin@workspace:."
   dependencies:
     "@babel/eslint-parser": "npm:^8.0.1"
-    "@babel/runtime": "npm:^8.0.0"
     "@eslint/js": "npm:^10.0.1"
     "@stylistic/eslint-plugin": "npm:^5.10.0"
     "@types/ejs": "npm:^3.1.5"
@@ -5067,12 +5059,8 @@ __metadata:
     web-node: "npm:^1.0.584"
     weboptimizer: "npm:^4.0.48"
   peerDependencies:
-    "@babel/runtime": "*"
     clientnode: "*"
     web-node: "*"
-  peerDependenciesMeta:
-    "@babel/runtime":
-      optional: true
   languageName: unknown
   linkType: soft
 
