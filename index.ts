@@ -277,8 +277,7 @@ export const render = async (state: State): Promise<Scope> => {
             const evaluated: EvaluationResult<AnyFunction> =
                 evaluate<AnyFunction>(
                     expression,
-                    currentScope,
-                    type === 'execution'
+                    {scope: currentScope, execute: type === 'execution'}
                 )
 
             if (evaluated.error)
