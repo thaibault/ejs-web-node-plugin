@@ -255,7 +255,9 @@ export const render = async (state: State): Promise<Scope> => {
     const currentPath: string = process.cwd()
     const now = new Date()
     const nowUTCTimestamp: number = getUTCTimestamp(now)
-    for (const type of ['evaluation', 'execution'] as const) {
+    for (const type of [
+        'async_evaluation', 'evaluation', 'async_execution', 'execution'
+    ] as const) {
         const evaluations: Mapping = configuration.ejs.scope[type]
         for (const [name, expression] of Object.entries(evaluations)) {
             const currentScope: EvaluateScopeValueScope = {
@@ -274,11 +276,23 @@ export const render = async (state: State): Promise<Scope> => {
                 webNodePath: __dirname
             }
 
-            const evaluated: EvaluationResult<AnyFunction> =
-                evaluate<AnyFunction>(
-                    expression,
-                    {scope: currentScope, execute: type === 'execution'}
-                )
+            const async = type.startsWith('async_')
+            const evaluated: EvaluationResult<
+                AnyFunction | Promise<AnyFunction>
+            > = evaluate<AnyFunction | Promise<AnyFunction>>(
+                expression,
+                {
+                    async,
+                    scope: currentScope,
+                    execute: type.endsWith('execution')
+                }
+            )
+
+            if (async)
+                (scope as Mapping<AnyFunction>)[name] = await (
+                    evaluated as
+                        PositiveEvaluationResult<Promise<AnyFunction>>
+                ).result
 
             if (evaluated.error)
                 log.warn(

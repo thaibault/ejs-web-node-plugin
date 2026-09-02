@@ -51,7 +51,9 @@ export type Configuration<ConfigurationType = Mapping<unknown>> =
             reloadEntryFiles: boolean
             reloadSourceContent: boolean
             scope: {
+                async_evaluation: Mapping
                 evaluation: Mapping
+                async_execution: Mapping
                 execution: Mapping
                 plain: PlainObject<object | Primitive>
             }
