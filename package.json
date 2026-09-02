@@ -126,6 +126,7 @@
       "reloadSourceContent": true,
       "renderAfterConfigurationUpdates": false,
       "scope": {
+        "async_evaluation": {},
         "evaluation": {
           "array": "array",
           "configuration": "configuration",
@@ -147,6 +148,7 @@
           "string": "string",
           "utility": "utility"
         },
+        "async_execution": {},
         "execution": {},
         "plain": {}
       }
