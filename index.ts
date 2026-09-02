@@ -490,8 +490,10 @@ export const renderFactory = (
                 ))
                     try {
                         services.ejs.templates[currentFilePath] =
-                            (await import(currentFilePath)).default as
-                                TemplateFunction
+                            (await import(
+                                /* webpackIgnore: true */
+                                currentFilePath
+                            )).default as TemplateFunction
                     } catch (error) {
                         throw new Error(
                             'Error occurred during loading script module: ' +
