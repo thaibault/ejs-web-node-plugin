@@ -288,17 +288,16 @@ export const render = async (state: State): Promise<Scope> => {
                 }
             )
 
-            if (async)
-                (scope as Mapping<AnyFunction>)[name] = await (
-                    evaluated as
-                        PositiveEvaluationResult<Promise<AnyFunction>>
-                ).result
-
             if (evaluated.error)
                 log.warn(
                     'Error occurred during processing given template scope',
                     `configuration for "${name}": ${evaluated.error}`
                 )
+            else if (async)
+                (scope as Mapping<AnyFunction>)[name] = await (
+                    evaluated as
+                        PositiveEvaluationResult<Promise<AnyFunction>>
+                ).result
             else
                 (scope as Mapping<AnyFunction>)[name] =
                     (evaluated as PositiveEvaluationResult<AnyFunction>).result
