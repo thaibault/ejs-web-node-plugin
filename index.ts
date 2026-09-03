@@ -519,8 +519,7 @@ export const renderFactory = (
                     let template: string
                     try {
                         template = await readFile(
-                            currentFilePath,
-                            {encoding: options.encoding}
+                            currentFilePath, {encoding: options.encoding}
                         )
                     } catch (error) {
                         throw new Error(
