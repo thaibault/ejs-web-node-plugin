@@ -5620,7 +5620,7 @@ __metadata:
     rimraf: "npm:^6.1.3"
     typescript-eslint: "npm:^8.70.0"
     web-documentation: "npm:^1.0.52"
-    web-node: "npm:^1.0.622"
+    web-node: "npm:^1.0.623"
     weboptimizer: "npm:^4.0.79"
   peerDependencies:
     clientnode: "*"
@@ -9822,14 +9822,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-node@npm:^1.0.622":
-  version: 1.0.622
-  resolution: "web-node@npm:1.0.622"
+"web-node@npm:^1.0.623":
+  version: 1.0.623
+  resolution: "web-node@npm:1.0.623"
   peerDependencies:
     clientnode: "*"
   bin:
     web-node: main.js
-  checksum: 10c0/164768408f83e00a50687d178f01bdd9bf848fa04e177a0ddad65a99a3c03b2018e0002e00758ce1fa4a74dbedf287546afcef80603c4020fc9eac51963927d1
+  checksum: 10c0/b094f47c2b115e59aaa056c37373d06569c7beb3b75d3fe1132ae60e24d3c362f781849bbc41e1a621e2caa97454570de9befcb48d1e60ab87f66871fb48c6f6
   languageName: node
   linkType: hard
 
