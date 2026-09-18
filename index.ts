@@ -289,7 +289,7 @@ export const render = async (state: State): Promise<Scope> => {
             )
 
             if (evaluated.error)
-                log.warn(
+                void log.warn(
                     'Error occurred during processing given template scope',
                     `configuration for "${name}": ${evaluated.error}`
                 )
@@ -342,7 +342,7 @@ export const render = async (state: State): Promise<Scope> => {
                     configuration.ejs.cache &&
                     await isFile(newFilePath)
                 ) {
-                    log.info(
+                    void log.info(
                         `Template: Use cached file ("${newFilePath}") for`,
                         `"${filePath}".`
                     )
@@ -377,7 +377,7 @@ export const render = async (state: State): Promise<Scope> => {
                         result = await render(filePath)
                     } catch (error) {
                         if (inPlace) {
-                            log.warn(
+                            void log.warn(
                                 'Error during running in-place',
                                 `replacement template file "${filePath}":`,
                                 represent(error)
@@ -415,7 +415,7 @@ export const render = async (state: State): Promise<Scope> => {
                             */
                         }
                     else {
-                        log.warn(
+                        void log.warn(
                             'An empty template processing result detected',
                             `for file "${newFilePath}" with input file`,
                             `"${filePath}".`
