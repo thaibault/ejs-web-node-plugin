@@ -8,16 +8,16 @@
     "static",
     "template"
   ],
-  "homepage": "https://torben.website/ejs-web-node-plugin",
+  "homepage": "https://tsickert.com/ejs-web-node-plugin",
   "bugs": {
-    "email": "info@torben.website",
+    "email": "info@tsickert.com",
     "url": "https://github.com/thaibault/ejs-web-node-plugin/issues"
   },
   "license": "CC-BY-3.0",
   "author": {
-    "email": "info@torben.website",
+    "email": "info@tsickert.com",
     "name": "Torben Sickert",
-    "url": "https://torben.website"
+    "url": "https://tsickert.com"
   },
   "repository": {
     "type": "git",
