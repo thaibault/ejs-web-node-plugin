@@ -390,6 +390,7 @@ export const render = async (state: State): Promise<Scope> => {
                         /* eslint-disable prefer-promise-reject-errors */
                         reject(error as Error)
                         /* eslint-enable prefer-promise-reject-errors */
+                        return
                     }
 
                     if (result)
