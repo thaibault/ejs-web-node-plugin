@@ -26,10 +26,11 @@ import {tmpdir} from 'os'
 import {basename, join} from 'path'
 import {configuration as baseConfiguration, loadAll, pluginAPI} from 'web-node'
 
-import {afterAll, beforeAll, expect, test} from '@jest/globals'
+import {afterAll, beforeAll, expect, jest, test} from '@jest/globals'
 
 import {
     getEntryFiles,
+    log,
     postConfigurationHotLoaded,
     preLoadService,
     render,
@@ -381,6 +382,9 @@ test('render scope, cache, in-place and empty results', async (): Promise<
             '.join("-") %>'
     })
 
+    const warn = jest.spyOn(log, 'warn')
+        .mockImplementation(() => Promise.resolve())
+
     const scope = await render({
         configuration: getFixtureConfiguration(location, {
             cache: true,
@@ -399,6 +403,18 @@ test('render scope, cache, in-place and empty results', async (): Promise<
         servicePromises: {},
         services: createServices()
     })
+
+    const warnings = warn.mock.calls.map(
+        ([message]: Array<unknown>): unknown => message
+    )
+    warn.mockRestore()
+
+    expect(warnings).toHaveLength(3)
+    expect(warnings).toEqual(expect.arrayContaining([
+        'Error occurred during processing given template scope',
+        'Error during running in-place',
+        'An empty template processing result detected'
+    ]))
 
     expect(scope).toHaveProperty('asyncValue', 2)
     expect(scope).toHaveProperty('executed', 3)
