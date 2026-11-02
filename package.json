@@ -1,6 +1,6 @@
 {
   "name": "ejs-web-node-plugin",
-  "version": "1.0.436",
+  "version": "1.0.436-1",
   "description": "A static template processor for web-node.",
   "keywords": [
     "backend",
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/thaibault/ejs-web-node-plugin.git"
+    "url": "git+https://github.com/thaibault/ejs-web-node-plugin.git"
   },
   "main": "index.js",
   "type": "module",
