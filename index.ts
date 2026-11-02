@@ -599,7 +599,7 @@ export const renderFactory = (
             `Given template file "${options.filename}" couldn't be ` +
             'resolved (with known extensions: "' +
             [''].concat(configuration.ejs.extensions).join('", "') +
-            `}")${givenScope.basePath ? ` "${givenScope.basePath}"` : ''}.`
+            `")${givenScope.basePath ? ` "${givenScope.basePath}"` : ''}.`
         )
     }
 }
