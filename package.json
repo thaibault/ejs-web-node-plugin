@@ -86,9 +86,6 @@
     "npm": ">=12",
     "yarn": ">=4"
   },
-  "webDocumentation": {
-    "trackingCode": "UA-40192634-19"
-  },
   "webNode": {
     "ejs": {
       "cache": false,
