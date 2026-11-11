@@ -152,6 +152,13 @@
       }
     }
   },
+  "webDocumentation": {
+    "languages": [
+      "enUS",
+      "deDE",
+      "frFR"
+    ]
+  },
   "webOptimizer": {
     "targetTechnology": {
       "boilerplate": "node",
