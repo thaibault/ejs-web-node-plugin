@@ -110,7 +110,7 @@ All values of the scope are available via the locals name "_". A template
 -->
 
 ```EJS
-Hello from <%- _.configuration.core.name %>!
+Hello from <%- _.configuration.name %>!
 
 Rendered at <%- _.now.toISOString() %>.
 
