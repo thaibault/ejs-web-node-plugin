@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Home</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Home</h1>
+
+    
+
+
+
+    
+
+
+    <h3>ejs-web-node-plugin 1.0.437</h3>
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    <section>
+        <article><!-- !/usr/bin/env markdown
+-*- coding: utf-8 -*-
+region header
+Copyright Torben Sickert (info["~at~"]tsickert.com) 16.12.2012
+
+License
+-------
+
+This library written by Torben Sickert stands under a creative commons naming
+4.0 international license.
+See https://creativecommons.org/licenses/by/4.0/deed.de
+endregion -->
+<!--|deDE:Projektstatus-->
+<!--|frFR:État du projet-->
+<h2>Project status</h2>
+<p><a href="https://www.npmjs.com/package/ejs-web-node-plugin"><img src="https://img.shields.io/npm/v/ejs-web-node-plugin?color=%23d55e5d&amp;label=npm%20package%20version&amp;logoColor=%23d55e5d&amp;style=for-the-badge" alt="npm"></a>
+<a href="https://www.npmjs.com/package/ejs-web-node-plugin"><img src="https://img.shields.io/npm/dy/ejs-web-node-plugin.svg?style=for-the-badge" alt="npm downloads"></a></p>
+<p><a href="https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/build.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/build.yaml?style=for-the-badge" alt="build"></a>
+<a href="https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/build-package-and-push.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/build-package-and-push.yaml?label=build%20push%20package&amp;style=for-the-badge" alt="build push package"></a></p>
+<p><a href="https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/check-types.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/check-types.yaml?label=check%20types&amp;style=for-the-badge" alt="check types"></a>
+<a href="https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/lint.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/lint.yaml?label=lint&amp;style=for-the-badge" alt="lint"></a>
+<a href="https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/test-coverage-report.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/test-coverage-report.yaml?label=test&amp;style=for-the-badge" alt="test"></a></p>
+<p><a href="https://coveralls.io/github/thaibault/ejs-web-node-plugin"><img src="https://img.shields.io/coverallsCoverage/github/thaibault/ejs-web-node-plugin?label=code%20coverage&amp;style=for-the-badge" alt="code coverage"></a></p>
+<p><a href="https://github.com/thaibault/ejs-web-node-plugin/actions/workflows/deploy-web-documentation.yaml"><img src="https://img.shields.io/github/actions/workflow/status/thaibault/ejs-web-node-plugin/deploy-web-documentation.yaml?label=deploy%20web%20documentation&amp;style=for-the-badge" alt="deploy web documentation"></a>
+<a href="https://tsickert.com/ejs-web-node-plugin"><img src="https://img.shields.io/website-up-down-green-red/https/tsickert.com/ejs-web-node-plugin.svg?label=web-documentation&amp;style=for-the-badge" alt="web documentation"></a></p>
+<!--|deDE:Einsatzmöglichkeiten-->
+<!--|frFR:Cas d'utilisation-->
+<h2>Use case</h2>
+<p>This <a href="https://tsickert.com/web-node">web-node</a> plugin renders
+<a href="https://ejs.co">EJS</a> templates found in your application into static files.
+Templates have access to the complete web-node configuration, so you can
+generate e.g. configuration files for other services, static HTML pages or
+scripts from one central configuration.</p>
+<!--deDE:
+    Dieses [web-node](https://tsickert.com/web-node)-Plugin rendert
+    [EJS](https://ejs.co)-Vorlagen Ihrer Anwendung in statische Dateien.
+    Vorlagen haben Zugriff auf die komplette web-node-Konfiguration, sodass
+    Sie z. B. Konfigurationsdateien für andere Dienste, statische HTML-Seiten
+    oder Skripte aus einer zentralen Konfiguration erzeugen können.
+-->
+<!--frFR:
+    Ce plugin [web-node](https://tsickert.com/web-node) génère des fichiers
+    statiques à partir des modèles [EJS](https://ejs.co) de votre application.
+    Les modèles ont accès à toute la configuration web-node, ce qui permet de
+    générer par exemple des fichiers de configuration pour d'autres services,
+    des pages HTML statiques ou des scripts à partir d'une configuration
+    centrale.
+-->
+<p>Features included:</p>
+<!--deDE:Enthaltene Funktionen:-->
+<!--frFR:Fonctionnalités incluses:-->
+<ul>
+<li>Renders every &quot;*.ejs&quot; file next to itself without the extension, e.g.
+&quot;nginx.conf.ejs&quot; becomes &quot;nginx.conf&quot;.<!--deDE:Rendert jede "*.ejs"-Datei neben sich selbst ohne die Endung, z. B. wird "nginx.conf.ejs" zu "nginx.conf".--><!--frFR:Génère chaque fichier "*.ejs" à côté de lui-même sans l'extension, par exemple "nginx.conf.ejs" devient "nginx.conf".--></li>
+<li>In-place replacement of files which are templates themselves.<!--deDE:Ersetzung an Ort und Stelle für Dateien, die selbst Vorlagen sind.--><!--frFR:Remplacement sur place pour les fichiers qui sont eux-mêmes des modèles.--></li>
+<li>Nested includes with their own local variables.<!--deDE:Verschachtelte Includes mit eigenen lokalen Variablen.--><!--frFR:Inclusions imbriquées avec leurs propres variables locales.--></li>
+<li>Configurable template scope with utilities, evaluated expressions and
+plain values.<!--deDE:Konfigurierbarer Vorlagen-Scope mit Hilfsfunktionen, ausgewerteten Ausdrücken und einfachen Werten.--><!--frFR:Portée de modèle configurable avec utilitaires, expressions évaluées et valeurs simples.--></li>
+<li>Re-rendering after configuration changes and removal of generated files on
+shutdown.<!--deDE:Erneutes Rendern nach Konfigurationsänderungen und Entfernen generierter Dateien beim Beenden.--><!--frFR:Nouveau rendu après modification de la configuration et suppression des fichiers générés à l'arrêt.--></li>
+</ul>
+<div class="wd-table-of-contents">
+    <h2 id="content">Content<!--deDE:Inhalt--><!--frFR:Contenu--></h2>
+    <!--wd-table-of-contents-->
+</div>
+<h2>Installation</h2>
+<p>Install the plugin next to web-node. web-node discovers every installed
+package whose name ends with &quot;-web-node-plugin&quot; automatically:</p>
+<!--deDE:
+    Installieren Sie das Plugin neben web-node. web-node erkennt jedes
+    installierte Paket, dessen Name auf "-web-node-plugin" endet,
+    automatisch:
+-->
+<!--frFR:
+    Installez le plugin à côté de web-node. web-node détecte automatiquement
+    chaque paquet installé dont le nom se termine par "-web-node-plugin":
+-->
+<pre class="prettyprint source lang-bash"><code>yarn add web-node ejs-web-node-plugin
+</code></pre>
+<!--|deDE:Beispiel-->
+<!--|frFR:Exemple-->
+<h2>Example</h2>
+<p>All values of the scope are available via the locals name &quot;_&quot;. A template
+&quot;greeting.txt.ejs&quot; in your application directory:</p>
+<!--deDE:
+    Alle Werte des Scopes sind über den Namen "_" verfügbar. Eine Vorlage
+    "greeting.txt.ejs" in Ihrem Anwendungsverzeichnis:
+-->
+<!--frFR:
+    Toutes les valeurs de la portée sont accessibles via le nom "_". Un
+    modèle "greeting.txt.ejs" dans le répertoire de votre application:
+-->
+<pre class="prettyprint source lang-EJS"><code>Hello from &lt;%- _.configuration.name %>!
+
+Rendered at &lt;%- _.now.toISOString() %>.
+
+&lt;%- await _.include('footer.txt', {year: _.now.getFullYear()}) %>
+</code></pre>
+<p>Enable rendering on startup and after configuration updates in your
+application's &quot;package.json&quot;. The result is written to &quot;greeting.txt&quot;:</p>
+<!--deDE:
+    Aktivieren Sie das Rendern beim Start und nach Konfigurationsänderungen in
+    der "package.json" Ihrer Anwendung. Das Ergebnis wird nach
+    "greeting.txt" geschrieben:
+-->
+<!--frFR:
+    Activez le rendu au démarrage et après chaque mise à jour de la
+    configuration dans le "package.json" de votre application. Le résultat est
+    écrit dans "greeting.txt":
+-->
+<pre class="prettyprint source lang-JSON"><code>{
+    &quot;webNode&quot;: {
+        &quot;ejs&quot;: {
+            &quot;renderAfterConfigurationUpdates&quot;: true
+        }
+    }
+}
+</code></pre>
+<p>Without this option nothing is rendered automatically. Other plugins can then
+trigger rendering via &quot;services.ejs.render(state)&quot;.</p>
+<!--deDE:
+    Ohne diese Option wird nichts automatisch gerendert. Andere Plugins können
+    das Rendern dann über "services.ejs.render(state)" auslösen.
+-->
+<!--frFR:
+    Sans cette option, rien n'est généré automatiquement. D'autres plugins
+    peuvent alors déclencher le rendu via "services.ejs.render(state)".
+-->
+<!--|deDE:Konfiguration-->
+<!--|frFR:Configuration-->
+<h2>Configuration</h2>
+<p>All options live below &quot;webNode.ejs&quot;:</p>
+<!--deDE:Alle Optionen liegen unterhalb von "webNode.ejs":-->
+<!--frFR:Toutes les options se trouvent sous "webNode.ejs":-->
+<ul>
+<li>&quot;extensions&quot;: File endings to treat as templates. Defaults to &quot;.ejs&quot; and
+&quot;.html.js&quot;.<!--deDE:"extensions": Dateiendungen, die als Vorlagen behandelt werden. Standardmäßig ".ejs" und ".html.js".--><!--frFR:"extensions": Extensions de fichier traitées comme modèles. Par défaut ".ejs" et ".html.js".--></li>
+<li>&quot;locations.include&quot; and &quot;locations.exclude&quot;: Directories to search and to
+skip. &quot;node_modules&quot;, &quot;src&quot;, &quot;log&quot;, &quot;database&quot; and similar folders are
+excluded by default.<!--deDE:"locations.include" und "locations.exclude": Zu durchsuchende und auszulassende Verzeichnisse. "node_modules", "src", "log", "database" und ähnliche Ordner sind standardmäßig ausgeschlossen.--><!--frFR:"locations.include" et "locations.exclude": Répertoires à parcourir et à ignorer. "node_modules", "src", "log", "database" et des dossiers similaires sont exclus par défaut.--></li>
+<li>&quot;locations.inPlaceReplacements&quot;: Files rendered into themselves instead of
+a new file.<!--deDE:"locations.inPlaceReplacements": Dateien, die in sich selbst statt in eine neue Datei gerendert werden.--><!--frFR:"locations.inPlaceReplacements": Fichiers générés dans eux-mêmes au lieu d'un nouveau fichier.--></li>
+<li>&quot;cache&quot; and &quot;cacheInPlaceReplacements&quot;: Skip rendering if a result already
+exists.<!--deDE:"cache" und "cacheInPlaceReplacements": Überspringen das Rendern, wenn bereits ein Ergebnis existiert.--><!--frFR:"cache" et "cacheInPlaceReplacements": Ignorent le rendu si un résultat existe déjà.--></li>
+<li>&quot;options&quot;: Options passed to <a href="https://ejs.co/#docs">EJS</a>, e.g. &quot;localsName&quot;
+(default &quot;_&quot;).<!--deDE:"options": Optionen für [EJS](https://ejs.co/#docs), z. B. "localsName" (standardmäßig "_").--><!--frFR:"options": Options transmises à [EJS](https://ejs.co/#docs), par exemple "localsName" (par défaut "_").--></li>
+<li>&quot;scope&quot;: Values available in templates. &quot;plain&quot; holds static values,
+&quot;evaluation&quot; and &quot;execution&quot; hold JavaScript expressions and statements
+evaluated once per rendering (&quot;async_*&quot; variants may be awaited). By default
+configuration, plugins, &quot;now&quot; and the clientnode utilities (&quot;array&quot;,
+&quot;string&quot;, &quot;object&quot;, …) are provided.<!--deDE:"scope": In Vorlagen verfügbare Werte. "plain" enthält statische Werte, "evaluation" und "execution" enthalten JavaScript-Ausdrücke und -Anweisungen, die einmal pro Rendervorgang ausgewertet werden ("async_*"-Varianten dürfen asynchron sein). Standardmäßig stehen Konfiguration, Plugins, "now" und die clientnode-Hilfsfunktionen ("array", "string", "object", …) bereit.--><!--frFR:"scope": Valeurs disponibles dans les modèles. "plain" contient des valeurs statiques, "evaluation" et "execution" contiennent des expressions et instructions JavaScript évaluées une fois par rendu (les variantes "async_*" peuvent être asynchrones). Par défaut, la configuration, les plugins, "now" et les utilitaires clientnode ("array", "string", "object", …) sont fournis.--></li>
+<li>&quot;renderAfterConfigurationUpdates&quot;: Render on startup and after each
+configuration change. Defaults to &quot;false&quot;.<!--deDE:"renderAfterConfigurationUpdates": Beim Start und nach jeder Konfigurationsänderung rendern. Standardmäßig "false".--><!--frFR:"renderAfterConfigurationUpdates": Générer au démarrage et après chaque modification de la configuration. Par défaut "false".--></li>
+<li>&quot;reloadEntryFiles&quot; and &quot;reloadSourceContent&quot;: Search templates and read
+their content again on each rendering.<!--deDE:"reloadEntryFiles" und "reloadSourceContent": Vorlagen bei jedem Rendern erneut suchen und ihren Inhalt neu einlesen.--><!--frFR:"reloadEntryFiles" et "reloadSourceContent": Rechercher les modèles et relire leur contenu à chaque rendu.--></li>
+</ul>
+<!--|deDE:Hooks und Dienste-->
+<!--|frFR:Hooks et services-->
+<h2>Hooks and services</h2>
+<ul>
+<li>&quot;preEjsRender&quot;: Runs before rendering. Return modified &quot;entryFiles&quot; or
+&quot;scope&quot;.<!--deDE:"preEjsRender": Läuft vor dem Rendern. Geben Sie geänderte "entryFiles" oder einen geänderten "scope" zurück.--><!--frFR:"preEjsRender": S'exécute avant le rendu. Retournez des "entryFiles" ou une "scope" modifiés.--></li>
+<li>&quot;postEjsRender&quot;: Runs after all templates are written.<!--deDE:"postEjsRender": Läuft, nachdem alle Vorlagen geschrieben wurden.--><!--frFR:"postEjsRender": S'exécute après l'écriture de tous les modèles.--></li>
+<li>&quot;services.ejs.render&quot;: Triggers rendering of all templates.<!--deDE:"services.ejs.render": Löst das Rendern aller Vorlagen aus.--><!--frFR:"services.ejs.render": Déclenche le rendu de tous les modèles.--></li>
+<li>&quot;services.ejs.renderFactory&quot;: Creates a render function for single files.<!--deDE:"services.ejs.renderFactory": Erzeugt eine Renderfunktion für einzelne Dateien.--><!--frFR:"services.ejs.renderFactory": Crée une fonction de rendu pour des fichiers individuels.--></li>
+</ul>
+<!--|deDE:Entwicklung-->
+<!--|frFR:Développement-->
+<h2>Development</h2>
+<pre class="prettyprint source lang-bash"><code>yarn install
+yarn build
+yarn test
+</code></pre></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#base">base</a></li><li><a href="global.html#baseMinusTMin">baseMinusTMin</a></li><li><a href="global.html#errors">errors</a></li><li><a href="global.html#maxInt">maxInt</a></li><li><a href="global.html#punycode">punycode</a></li><li><a href="global.html#regexPunycode">regexPunycode</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Sun Nov 15 2026 14:08:05 GMT+0100 (Mitteleuropäische Normalzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
